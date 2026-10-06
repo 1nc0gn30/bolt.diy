@@ -80,7 +80,7 @@ Interested in maintaining and growing the project? Fill out our [Contributor App
 
 - Clone the repository:
   ```bash
-  git clone https://github.com/stackblitz-labs/bolt.diy.git
+  git clone https://github.com/1nc0gn30/zoth-webgen.git
   ```
 - Install dependencies:
   ```bash

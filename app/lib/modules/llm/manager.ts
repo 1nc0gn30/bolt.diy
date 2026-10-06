@@ -217,11 +217,13 @@ export class LLMManager {
   }
 
   getDefaultProvider(): BaseProvider {
-    /*
-     * Prefer OpenRouter explicitly. Registration order follows the export
-     * order of ./registry, which would otherwise make the default depend on
-     * which provider happens to be listed first.
-     */
+    const envProvider = (this._env as any)?.DEFAULT_PROVIDER || 'Google';
+    const preferred = this._providers.get(envProvider) || this._providers.get('Google');
+
+    if (preferred) {
+      return preferred;
+    }
+
     const openRouter = this._providers.get('OpenRouter');
 
     if (openRouter) {

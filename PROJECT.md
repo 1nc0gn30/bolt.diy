@@ -1,21 +1,14 @@
-# Project management of bolt.diy
+# Project Management of Zoth WebGen Foundry
 
-First off: this sounds funny, we know. "Project management" comes from a world of enterprise stuff and this project is
-far from being enterprisy- it's still anarchy all over the place 😉
+Zoth WebGen Foundry is engineered by Neal Frazier Tech (@1nc0gn30) as part of the sovereign NullAI platform ecosystem.
 
-But we need to organize ourselves somehow, right?
+> **Engineering Roadmap**: Tracked in the [NullAI Platform Hub](https://nullai.tech) and GitHub repository [1nc0gn30/zoth-webgen](https://github.com/1nc0gn30/zoth-webgen).
 
-> tl;dr: We've got a project board with epics and features. We use PRs as change log and as materialized features. Find it [here](https://github.com/orgs/stackblitz-labs/projects/4).
+Here's how we structure long-term vision, mid-term capabilities of the software, and short-term improvements.
 
-Here's how we structure long-term vision, mid-term capabilities of the software and short term improvements.
+## Strategic Epics (Long-term)
 
-## Strategic epics (long-term)
-
-Strategic epics define areas in which the product evolves. Usually, these epics don’t overlap. They shall allow the core
-team to define what they believe is most important and should be worked on with the highest priority.
-
-You can find the [epics as issues](https://github.com/stackblitz-labs/bolt.diy/labels/epic) which are probably never
-going to be closed.
+Strategic epics define areas in which Zoth WebGen evolves. They allow the core team to define what is most important and should be worked on with the highest priority: WebContainers, Avant-Garde UI generation, autonomous multi-model reasoning, and sovereign deployment pipelines.
 
 What's the benefit / purpose of epics?
 

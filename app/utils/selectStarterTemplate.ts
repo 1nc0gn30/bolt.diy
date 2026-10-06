@@ -5,8 +5,8 @@ import type { Template } from '~/types/template';
 
 const starterTemplateSelectionPrompt = (templates: Template[]) => `
 You are an experienced developer who helps people choose the best starter template for their projects.
-IMPORTANT: Vite is preferred
-IMPORTANT: Only choose shadcn templates if the user explicitly asks for shadcn.
+IMPORTANT: Vite is preferred.
+IMPORTANT: Strongly prefer 'Vite Shadcn' or 'Vite React' for modern web applications, interactive landing pages, motion designs, and rich UI projects.
 
 Available templates:
 <template>
@@ -38,7 +38,7 @@ Examples:
 User: I need to build a todo app
 Response:
 <selection>
-  <templateName>react-basic-starter</templateName>
+  <templateName>Vite Shadcn</templateName>
   <title>Simple React todo application</title>
 </selection>
 </example>
@@ -54,7 +54,7 @@ Response:
 
 Instructions:
 1. For trivial tasks and simple scripts, always recommend the blank template
-2. For more complex projects, recommend templates from the provided list
+2. For rich web applications, dashboards, motion websites, and landing pages, recommend Vite Shadcn or Vite React
 3. Follow the exact XML format
 4. Consider both technical requirements and tags
 5. If no perfect match exists, recommend the closest option
@@ -63,7 +63,7 @@ Important: Provide only the selection tags in your response, no additional text.
 MOST IMPORTANT: YOU DONT HAVE TIME TO THINK JUST START RESPONDING BASED ON HUNCH 
 `;
 
-const templates: Template[] = STARTER_TEMPLATES.filter((t) => !t.name.includes('shadcn'));
+const templates: Template[] = STARTER_TEMPLATES;
 
 const parseSelectedTemplate = (llmOutput: string): { template: string; title: string } | null => {
   try {

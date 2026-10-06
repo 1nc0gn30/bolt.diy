@@ -1,14 +1,14 @@
 {
-  "name": "bolt",
-  "description": "An AI Agent",
+  "name": "zoth-webgen",
+  "description": "Zoth WebGen Foundry — Autonomous In-Browser Full-Stack Application Architect",
   "private": true,
   "license": "MIT",
   "sideEffects": false,
   "type": "module",
-  "version": "1.0.0",
+  "version": "3.0.0",
   "author": {
-    "name": "bolt.diy team",
-    "email": "maintainers@bolt.diy"
+    "name": "Neal Frazier Tech",
+    "email": "neal@nealfrazier.tech"
   },
   "scripts": {
     "deploy": "npm run build && wrangler pages deploy",
@@ -23,9 +23,9 @@
     "start:unix": "bindings=$(./bindings.sh) && wrangler pages dev ./build/client $bindings",
     "start": "node -e \"const { spawn } = require('child_process'); const isWindows = process.platform === 'win32'; const cmd = isWindows ? 'npm run start:windows' : 'npm run start:unix'; const child = spawn(cmd, { shell: true, stdio: 'inherit' }); child.on('exit', code => process.exit(code));\"",
     "dockerstart": "bindings=$(./bindings.sh) && wrangler pages dev ./build/client $bindings --ip 0.0.0.0 --port 5173 --no-show-interactive-dev-session",
-    "dockerrun": "docker run -it -d --name bolt-ai-live -p 5173:5173 --env-file .env.local bolt-ai",
-    "dockerbuild:prod": "docker build -t bolt-ai:production -t bolt-ai:latest --target bolt-ai-production .",
-    "dockerbuild": "docker build -t bolt-ai:development -t bolt-ai:latest --target development .",
+    "dockerrun": "docker run -it -d --name zoth-webgen-live -p 5173:5173 --env-file .env.local zoth-webgen",
+    "dockerbuild:prod": "docker build -t zoth-webgen:production -t zoth-webgen:latest --target zoth-webgen-production .",
+    "dockerbuild": "docker build -t zoth-webgen:development -t zoth-webgen:latest --target development .",
     "typecheck": "tsc",
     "typegen": "wrangler types",
     "preview": "pnpm run build && pnpm run start",

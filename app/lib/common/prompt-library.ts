@@ -1,3 +1,4 @@
+import { getAvantGardePrompt } from './prompts/avant-garde-prompt';
 import { getFineTunedPrompt } from './prompts/new-prompt';
 import optimized from './prompts/optimized';
 import { getSystemPrompt } from './prompts/prompts';
@@ -28,7 +29,17 @@ export class PromptLibrary {
     }
   > = {
     default: {
-      label: 'Default Prompt',
+      label: 'Avant-Garde Motion & UI Studio (Default)',
+      description: 'Award-winning UI/UX with Aceternity, Magic UI, and Framer Motion primitives',
+      get: (options) => getAvantGardePrompt(options.cwd, options.supabase, options.designScheme),
+    },
+    'avant-garde': {
+      label: 'Avant-Garde Motion & UI Studio',
+      description: 'Award-winning UI/UX with Aceternity, Magic UI, and Framer Motion primitives',
+      get: (options) => getAvantGardePrompt(options.cwd, options.supabase, options.designScheme),
+    },
+    finetuned: {
+      label: 'Fine-Tuned Prompt',
       description: 'An fine tuned prompt for better results and less token usage',
       get: (options) => getFineTunedPrompt(options.cwd, options.supabase, options.designScheme),
     },

@@ -19,6 +19,59 @@ export default defineConfig((config) => {
     build: {
       target: 'esnext',
     },
+    optimizeDeps: {
+      include: [
+        'react-markdown',
+        'remark-gfm',
+        'rehype-raw',
+        'shiki',
+        'react-resizable-panels',
+        'react-window',
+        '@radix-ui/react-checkbox',
+        '@radix-ui/react-dialog',
+        '@radix-ui/react-label',
+        '@radix-ui/react-tooltip',
+        '@radix-ui/react-tabs',
+        '@radix-ui/react-switch',
+        '@codemirror/autocomplete',
+        '@codemirror/commands',
+        '@codemirror/language',
+        '@codemirror/search',
+        '@codemirror/state',
+        '@codemirror/view',
+        '@lezer/highlight',
+        '@nanostores/react',
+        'nanostores',
+        'framer-motion',
+        'lucide-react',
+        'clsx',
+        'tailwind-merge',
+        'diff',
+        'file-saver',
+        'jszip',
+        'js-cookie',
+        'react-toastify',
+        'zustand',
+        '@webcontainer/api',
+        'isomorphic-git',
+        'isomorphic-git/http/web',
+        '@ai-sdk/openai',
+        '@ai-sdk/google',
+        '@ai-sdk/anthropic',
+        'react-dnd',
+        'react-dnd-html5-backend',
+        'remix-island',
+        'remix-utils/client-only'
+      ],
+    },
+    server: {
+      warmup: {
+        clientFiles: [
+          './app/root.tsx',
+          './app/routes/**/*.tsx'
+        ],
+      },
+    },
     plugins: [
       nodePolyfills({
         include: ['buffer', 'process', 'util', 'stream'],
@@ -92,7 +145,7 @@ function chrome129IssuePlugin() {
           if (version === 129) {
             res.setHeader('content-type', 'text/html');
             res.end(
-              '<body><h1>Please use Chrome Canary for testing.</h1><p>Chrome 129 has an issue with JavaScript modules & Vite local development, see <a href="https://github.com/stackblitz/bolt.new/issues/86#issuecomment-2395519258">for more information.</a></p><p><b>Note:</b> This only impacts <u>local development</u>. `pnpm run build` and `pnpm run start` will work fine in this browser.</p></body>',
+              '<body><h1>Please use Chrome Canary or latest Chrome for testing.</h1><p>Chrome 129 had an upstream issue with JavaScript modules & Vite local development.</p><p><b>Note:</b> This only impacts <u>local development</u>. `pnpm run build` and `pnpm run start` will work fine in this browser.</p></body>',
             );
 
             return;

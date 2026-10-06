@@ -16,11 +16,11 @@ let commitJson = {
 
 console.log(`
 ★═══════════════════════════════════════★
-          B O L T . D I Y
-         ⚡️  Welcome  ⚡️
+       Z O T H   W E B G E N
+    👑 Autonomous App Foundry 👑
 ★═══════════════════════════════════════★
 `);
-console.log('📍 Current Version Tag:', `v${commitJson.version}`);
-console.log('📍 Current Commit Version:', commitJson.hash);
-console.log('  Please wait until the URL appears here');
+console.log('📍 Platform: NullAI Engine (v3.0.0)');
+console.log('📍 Commit Hash:', commitJson.hash);
+console.log('📍 Creator: Neal Frazier Tech (@1nc0gn30)');
 console.log('★═══════════════════════════════════════★');

@@ -6,7 +6,14 @@ import { Header } from '~/components/header/Header';
 import BackgroundRays from '~/components/ui/BackgroundRays';
 
 export const meta: MetaFunction = () => {
-  return [{ title: 'Bolt' }, { name: 'description', content: 'Talk with Bolt, an AI assistant from StackBlitz' }];
+  return [
+    { title: 'Zoth WebGen — Autonomous App Foundry' },
+    {
+      name: 'description',
+      content:
+        'Zoth WebGen: Autonomous full-stack application architect and in-browser runtime engine by Neal Frazier Tech / NullAI Platform.',
+    },
+  ];
 };
 
 export const loader = () => json({});

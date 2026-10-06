@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Bolt.new related issues
-    url: https://github.com/stackblitz/bolt.new/issues/new/choose
-    about: Report issues related to Bolt.new (not Bolt.diy)
-  - name: Chat
-    url: https://thinktank.ottomator.ai
-    about: Ask questions and discuss with other Bolt.diy users.
+  - name: NullAI Support & Community
+    url: https://nullai.tech
+    about: Ask questions and discuss with the NullAI and Zoth developer community.
+  - name: Neal Frazier Tech Hub
+    url: https://nealfrazier.tech
+    about: Contact Neal Frazier Tech support.
