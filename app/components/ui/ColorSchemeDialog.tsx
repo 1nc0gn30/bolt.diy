@@ -1,14 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from './Button';
 import { Dialog, DialogTitle, DialogDescription, DialogRoot } from './Dialog';
 import { IconButton } from './IconButton';
-import type { DesignScheme } from '~/types/design-scheme';
-import { defaultDesignScheme, designFeatures, designFonts, paletteRoles } from '~/types/design-scheme';
+import {
+  FRAMEWORK_OPTIONS,
+  UI_LIBRARIES,
+  ANIMATION_LIBRARIES,
+  COMMODITIES_AND_EFFECTS,
+  TYPOGRAPHY_PAIRINGS,
+  COLOR_PALETTES,
+  type CatalogItem,
+} from '~/lib/modules/design-libraries/catalog';
+import type { DesignScheme, StudioPreset } from '~/types/design-scheme';
+import {
+  defaultDesignScheme,
+  designFeatures,
+  paletteRoles,
+  curatedPaletteMaps,
+  STUDIO_PRESETS,
+} from '~/types/design-scheme';
 
 export interface ColorSchemeDialogProps {
   designScheme?: DesignScheme;
   setDesignScheme?: (scheme: DesignScheme) => void;
 }
+
+type StudioTab = 'frameworks' | 'ui' | 'animation' | 'commodities' | 'typography' | 'colors' | 'features';
 
 export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignScheme, designScheme }) => {
   const [palette, setPalette] = useState<{ [key: string]: string }>(() => {
@@ -21,18 +38,38 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
 
   const [features, setFeatures] = useState<string[]>(designScheme?.features || defaultDesignScheme.features);
   const [font, setFont] = useState<string[]>(designScheme?.font || defaultDesignScheme.font);
+
+  const [framework, setFramework] = useState<string>(
+    designScheme?.framework || defaultDesignScheme.framework || 'vite-react',
+  );
+  const [uiLibrary, setUiLibrary] = useState<string>(
+    designScheme?.uiLibrary || defaultDesignScheme.uiLibrary || 'shadcn-ui',
+  );
+
+  const [animationLibrary, setAnimationLibrary] = useState<string>(
+    designScheme?.animationLibrary || defaultDesignScheme.animationLibrary || 'framer-motion',
+  );
+  const [commodities, setCommodities] = useState<string[]>(
+    designScheme?.commodities || defaultDesignScheme.commodities || ['conic-border-beam', 'aurora-mesh-gradient'],
+  );
+  const [typographyPairing, setTypographyPairing] = useState<string>(
+    designScheme?.typographyPairing || defaultDesignScheme.typographyPairing || 'syne-space-grotesk',
+  );
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<'colors' | 'typography' | 'features'>('colors');
+  const [activeTab, setActiveTab] = useState<StudioTab>('frameworks');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (designScheme) {
       setPalette(() => ({ ...defaultDesignScheme.palette, ...designScheme.palette }));
       setFeatures(designScheme.features || defaultDesignScheme.features);
       setFont(designScheme.font || defaultDesignScheme.font);
-    } else {
-      setPalette(defaultDesignScheme.palette);
-      setFeatures(defaultDesignScheme.features);
-      setFont(defaultDesignScheme.font);
+      setFramework(designScheme.framework || 'vite-react');
+      setUiLibrary(designScheme.uiLibrary || 'shadcn-ui');
+      setAnimationLibrary(designScheme.animationLibrary || 'framer-motion');
+      setCommodities(designScheme.commodities || ['conic-border-beam', 'aurora-mesh-gradient']);
+      setTypographyPairing(designScheme.typographyPairing || 'syne-space-grotesk');
     }
   }, [designScheme]);
 
@@ -44,12 +81,67 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     setFeatures((prev) => (prev.includes(key) ? prev.filter((f) => f !== key) : [...prev, key]));
   };
 
-  const handleFontToggle = (key: string) => {
-    setFont((prev) => (prev.includes(key) ? prev.filter((f) => f !== key) : [...prev, key]));
+  const handleCommodityToggle = (id: string) => {
+    setCommodities((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  };
+
+  const handleApplyPalette = (paletteId: string) => {
+    const preset = curatedPaletteMaps[paletteId];
+
+    if (preset) {
+      setPalette({ ...palette, ...preset });
+    }
+  };
+
+  const handleApplyPreset = (preset: StudioPreset) => {
+    if (preset.scheme.framework) {
+      setFramework(preset.scheme.framework);
+    }
+
+    if (preset.scheme.uiLibrary) {
+      setUiLibrary(preset.scheme.uiLibrary);
+    }
+
+    if (preset.scheme.animationLibrary) {
+      setAnimationLibrary(preset.scheme.animationLibrary);
+    }
+
+    if (preset.scheme.typographyPairing) {
+      setTypographyPairing(preset.scheme.typographyPairing);
+    }
+
+    if (preset.scheme.commodities) {
+      setCommodities(preset.scheme.commodities);
+    }
+
+    if (preset.scheme.palette) {
+      setPalette((prev) => ({ ...prev, ...preset.scheme.palette }));
+    }
+
+    if (preset.scheme.features) {
+      setFeatures(preset.scheme.features);
+    }
   };
 
   const handleSave = () => {
-    setDesignScheme?.({ palette, features, font });
+    const updated: DesignScheme = {
+      palette,
+      features,
+      font,
+      framework,
+      uiLibrary,
+      animationLibrary,
+      commodities,
+      typographyPairing,
+    };
+
+    try {
+      localStorage.setItem('zoth_design_scheme', JSON.stringify(updated));
+    } catch {
+      // Local storage may be restricted in some browser settings
+    }
+
+    setDesignScheme?.(updated);
     setIsDialogOpen(false);
   };
 
@@ -57,282 +149,595 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     setPalette(defaultDesignScheme.palette);
     setFeatures(defaultDesignScheme.features);
     setFont(defaultDesignScheme.font);
+    setFramework(defaultDesignScheme.framework || 'vite-react');
+    setUiLibrary(defaultDesignScheme.uiLibrary || 'shadcn-ui');
+    setAnimationLibrary(defaultDesignScheme.animationLibrary || 'framer-motion');
+    setCommodities(defaultDesignScheme.commodities || ['conic-border-beam', 'aurora-mesh-gradient']);
+    setTypographyPairing(defaultDesignScheme.typographyPairing || 'syne-space-grotesk');
   };
 
-  const renderColorSection = () => (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-bolt-elements-item-contentAccent"></div>
-          Color Palette
-        </h3>
-        <button
-          onClick={handleReset}
-          className="text-sm bg-transparent hover:bg-bolt-elements-bg-depth-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary rounded-lg flex items-center gap-2 transition-all duration-200"
-        >
-          <span className="i-ph:arrow-clockwise text-sm" />
-          Reset
-        </button>
-      </div>
+  const filterItems = (items: CatalogItem[]) => {
+    if (!searchQuery.trim()) {
+      return items;
+    }
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-        {paletteRoles.map((role) => (
-          <div
-            key={role.key}
-            className="group flex items-center gap-4 p-4 rounded-xl bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-2 border border-transparent hover:border-bolt-elements-borderColor transition-all duration-200"
-          >
-            <div className="relative flex-shrink-0">
-              <div
-                className="w-12 h-12 rounded-xl shadow-md cursor-pointer transition-all duration-200 hover:scale-110 ring-2 ring-transparent hover:ring-bolt-elements-borderColorActive"
-                style={{ backgroundColor: palette[role.key] }}
-                onClick={() => document.getElementById(`color-input-${role.key}`)?.click()}
-                role="button"
-                tabIndex={0}
-                aria-label={`Change ${role.label} color`}
-              />
-              <input
-                id={`color-input-${role.key}`}
-                type="color"
-                value={palette[role.key]}
-                onChange={(e) => handleColorChange(role.key, e.target.value)}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                tabIndex={-1}
-              />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-bolt-elements-bg-depth-1 rounded-full flex items-center justify-center shadow-sm">
-                <span className="i-ph:pencil-simple text-xs text-bolt-elements-textSecondary" />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-bolt-elements-textPrimary transition-colors">{role.label}</div>
-              <div className="text-sm text-bolt-elements-textSecondary line-clamp-2 leading-relaxed">
-                {role.description}
-              </div>
-              <div className="text-xs text-bolt-elements-textTertiary font-mono mt-1 px-2 py-1 bg-bolt-elements-bg-depth-1 rounded-md inline-block">
-                {palette[role.key]}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+    const q = searchQuery.toLowerCase();
 
-  const renderTypographySection = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-bolt-elements-item-contentAccent"></div>
-        Typography
-      </h3>
+    return items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q) ||
+        item.tags.some((t) => t.toLowerCase().includes(q)) ||
+        (item.badge && item.badge.toLowerCase().includes(q)) ||
+        (item.npmPackage && item.npmPackage.toLowerCase().includes(q)),
+    );
+  };
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-        {designFonts.map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() => handleFontToggle(f.key)}
-            className={`group p-4 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-bolt-elements-borderColorActive ${
-              font.includes(f.key)
-                ? 'bg-bolt-elements-item-backgroundAccent border-bolt-elements-borderColorActive shadow-lg'
-                : 'bg-bolt-elements-background-depth-3 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive hover:bg-bolt-elements-bg-depth-2'
-            }`}
-          >
-            <div className="text-center space-y-2">
-              <div
-                className={`text-2xl font-medium transition-colors ${
-                  font.includes(f.key) ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textPrimary'
-                }`}
-                style={{ fontFamily: f.key }}
-              >
-                {f.preview}
-              </div>
-              <div
-                className={`text-sm font-medium transition-colors ${
-                  font.includes(f.key) ? 'text-bolt-elements-item-contentAccent' : 'text-bolt-elements-textSecondary'
-                }`}
-              >
-                {f.label}
-              </div>
-              {font.includes(f.key) && (
-                <div className="w-6 h-6 mx-auto bg-bolt-elements-item-contentAccent rounded-full flex items-center justify-center">
-                  <span className="i-ph:check text-white text-sm" />
-                </div>
-              )}
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  const filteredFrameworks = useMemo(() => filterItems(FRAMEWORK_OPTIONS), [searchQuery]);
+  const filteredUI = useMemo(() => filterItems(UI_LIBRARIES), [searchQuery]);
+  const filteredAnimation = useMemo(() => filterItems(ANIMATION_LIBRARIES), [searchQuery]);
+  const filteredCommodities = useMemo(() => filterItems(COMMODITIES_AND_EFFECTS), [searchQuery]);
+  const filteredTypography = useMemo(() => filterItems(TYPOGRAPHY_PAIRINGS), [searchQuery]);
+  const filteredPalettes = useMemo(() => filterItems(COLOR_PALETTES), [searchQuery]);
 
-  const renderFeaturesSection = () => (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-bolt-elements-item-contentAccent"></div>
-        Design Features
-      </h3>
+  const activeFrameworkObj = FRAMEWORK_OPTIONS.find((f) => f.id === framework) || FRAMEWORK_OPTIONS[1];
+  const activeUIObj = UI_LIBRARIES.find((u) => u.id === uiLibrary) || UI_LIBRARIES[0];
+  const activeMotionObj = ANIMATION_LIBRARIES.find((a) => a.id === animationLibrary) || ANIMATION_LIBRARIES[0];
+  const activeTypoObj = TYPOGRAPHY_PAIRINGS.find((t) => t.id === typographyPairing) || TYPOGRAPHY_PAIRINGS[0];
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-        {designFeatures.map((f) => {
-          const isSelected = features.includes(f.key);
-
-          return (
-            <div key={f.key} className="feature-card-container p-2">
-              <button
-                type="button"
-                onClick={() => handleFeatureToggle(f.key)}
-                className={`group relative w-full p-6 text-sm font-medium transition-all duration-200 bg-bolt-elements-background-depth-3 text-bolt-elements-item-textSecondary ${
-                  f.key === 'rounded'
-                    ? isSelected
-                      ? 'rounded-3xl'
-                      : 'rounded-xl'
-                    : f.key === 'border'
-                      ? 'rounded-lg'
-                      : 'rounded-xl'
-                } ${
-                  f.key === 'border'
-                    ? isSelected
-                      ? 'border-3 border-bolt-elements-borderColorActive bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent'
-                      : 'border-2 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive text-bolt-elements-textSecondary'
-                    : f.key === 'gradient'
-                      ? ''
-                      : isSelected
-                        ? 'bg-bolt-elements-item-backgroundAccent text-bolt-elements-item-contentAccent shadow-lg'
-                        : 'bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary'
-                } ${f.key === 'shadow' ? (isSelected ? 'shadow-xl' : 'shadow-lg') : 'shadow-md'}`}
-                style={{
-                  ...(f.key === 'gradient' && {
-                    background: isSelected
-                      ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                      : 'var(--bolt-elements-bg-depth-3)',
-                    color: isSelected ? 'white' : 'var(--bolt-elements-textSecondary)',
-                  }),
-                }}
-              >
-                <div className="flex flex-col items-center gap-4">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-bolt-elements-bg-depth-1 bg-opacity-20">
-                    {f.key === 'rounded' && (
-                      <div
-                        className={`w-6 h-6 bg-current transition-all duration-200 ${
-                          isSelected ? 'rounded-full' : 'rounded'
-                        } opacity-80`}
-                      />
-                    )}
-                    {f.key === 'border' && (
-                      <div
-                        className={`w-6 h-6 rounded-lg transition-all duration-200 ${
-                          isSelected ? 'border-3 border-current opacity-90' : 'border-2 border-current opacity-70'
-                        }`}
-                      />
-                    )}
-                    {f.key === 'gradient' && (
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-400 via-pink-400 to-indigo-400 opacity-90" />
-                    )}
-                    {f.key === 'shadow' && (
-                      <div className="relative">
-                        <div
-                          className={`w-6 h-6 bg-current rounded-lg transition-all duration-200 ${
-                            isSelected ? 'opacity-90' : 'opacity-70'
-                          }`}
-                        />
-                        <div
-                          className={`absolute top-1 left-1 w-6 h-6 bg-current rounded-lg transition-all duration-200 ${
-                            isSelected ? 'opacity-40' : 'opacity-30'
-                          }`}
-                        />
-                      </div>
-                    )}
-                    {f.key === 'frosted-glass' && (
-                      <div className="relative">
-                        <div
-                          className={`w-6 h-6 rounded-lg transition-all duration-200 backdrop-blur-sm bg-white/20 border border-white/30 ${
-                            isSelected ? 'opacity-90' : 'opacity-70'
-                          }`}
-                        />
-                        <div
-                          className={`absolute inset-0 w-6 h-6 rounded-lg transition-all duration-200 backdrop-blur-md bg-gradient-to-br from-white/10 to-transparent ${
-                            isSelected ? 'opacity-60' : 'opacity-40'
-                          }`}
-                        />
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="text-center">
-                    <div className="font-semibold">{f.label}</div>
-                    {isSelected && <div className="mt-2 w-8 h-1 bg-current rounded-full mx-auto opacity-60" />}
-                  </div>
-                </div>
-              </button>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+  const tabs: { key: StudioTab; label: string; icon: string; count: number }[] = [
+    { key: 'frameworks', label: 'Frameworks', icon: 'i-ph:cube', count: FRAMEWORK_OPTIONS.length },
+    { key: 'ui', label: 'UI Systems', icon: 'i-ph:layout', count: UI_LIBRARIES.length },
+    { key: 'animation', label: 'Motion & Physics', icon: 'i-ph:play-circle', count: ANIMATION_LIBRARIES.length },
+    { key: 'commodities', label: '2026 FX', icon: 'i-ph:sparkle', count: COMMODITIES_AND_EFFECTS.length },
+    { key: 'typography', label: 'Typography', icon: 'i-ph:text-aa', count: TYPOGRAPHY_PAIRINGS.length },
+    { key: 'colors', label: 'Palettes', icon: 'i-ph:palette', count: COLOR_PALETTES.length },
+    { key: 'features', label: 'Surface FX', icon: 'i-ph:magic-wand', count: designFeatures.length },
+  ];
 
   return (
     <div>
-      <IconButton title="Design Palette" className="transition-all" onClick={() => setIsDialogOpen(!isDialogOpen)}>
-        <div className="i-ph:palette text-xl"></div>
+      <IconButton
+        title="Zoth Design & Framework Studio (280+ Options)"
+        className="transition-all relative hover:scale-105"
+        onClick={() => setIsDialogOpen(!isDialogOpen)}
+      >
+        <div className="i-ph:palette text-xl text-amber-400"></div>
+        <span className="absolute -top-1 -right-1 flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+        </span>
       </IconButton>
 
       <DialogRoot open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <Dialog>
-          <div className="py-4 px-4 min-w-[480px] max-w-[90vw] max-h-[85vh] flex flex-col gap-6 overflow-hidden">
-            <div className="">
-              <DialogTitle className="text-2xl font-bold text-bolt-elements-textPrimary">
-                Design Palette & Features
-              </DialogTitle>
-              <DialogDescription className="text-bolt-elements-textSecondary leading-relaxed">
-                Customize your color palette, typography, and design features. These preferences will guide the AI in
-                creating designs that match your style.
-              </DialogDescription>
+        <Dialog className="!w-[95vw] !max-w-5xl !rounded-2xl border-amber-500/20 bg-bolt-elements-bg-depth-1">
+          <div className="py-4 px-4 sm:px-6 w-full max-h-[90vh] flex flex-col gap-4 overflow-hidden text-bolt-elements-textPrimary">
+            {/* Studio Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-bolt-elements-borderColor pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <DialogTitle className="text-xl sm:text-2xl font-bold text-bolt-elements-textPrimary flex items-center gap-2">
+                    <span className="i-ph:sparkle text-amber-400 text-xl" />
+                    Zoth Design & Framework Studio
+                  </DialogTitle>
+                  <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    280+ Libraries & FX
+                  </span>
+                </div>
+                <DialogDescription className="text-xs sm:text-sm text-bolt-elements-textSecondary mt-1">
+                  Synthesize your web application stack with Astro 5+, Vite React 19, Vanilla JS, motion physics, and
+                  2026 commodities.
+                </DialogDescription>
+              </div>
+
+              {/* Active Stack Summary Pill */}
+              <div className="hidden lg:flex items-center gap-2 p-2 rounded-xl bg-bolt-elements-bg-depth-3 border border-bolt-elements-borderColor text-xs">
+                <span className="px-2 py-1 rounded bg-amber-500/10 text-amber-400 font-mono font-medium border border-amber-500/20">
+                  {activeFrameworkObj?.name.split(' ')[0]}
+                </span>
+                <span className="text-bolt-elements-textTertiary">+</span>
+                <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-400 font-mono font-medium border border-blue-500/20">
+                  {activeUIObj?.name.split(' ')[0]}
+                </span>
+                <span className="text-bolt-elements-textTertiary">+</span>
+                <span className="px-2 py-1 rounded bg-purple-500/10 text-purple-400 font-mono font-medium border border-purple-500/20">
+                  {activeMotionObj?.name.split(' ')[0]}
+                </span>
+              </div>
             </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex gap-1 p-1 bg-bolt-elements-bg-depth-3 rounded-xl">
-              {[
-                { key: 'colors', label: 'Colors', icon: 'i-ph:palette' },
-                { key: 'typography', label: 'Typography', icon: 'i-ph:text-aa' },
-                { key: 'features', label: 'Features', icon: 'i-ph:magic-wand' },
-              ].map((tab) => (
+            {/* 1-Click Studio Presets Bar */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar text-xs">
+              <span className="text-bolt-elements-textTertiary whitespace-nowrap font-medium flex items-center gap-1">
+                <span className="i-ph:lightning text-amber-400" /> Presets:
+              </span>
+              {STUDIO_PRESETS.map((preset) => (
                 <button
-                  key={tab.key}
-                  onClick={() => setActiveSection(tab.key as any)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                    activeSection === tab.key
-                      ? 'bg-bolt-elements-background-depth-3 text-bolt-elements-textPrimary shadow-md'
-                      : 'bg-bolt-elements-background-depth-2 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-bg-depth-2'
-                  }`}
+                  key={preset.id}
+                  onClick={() => handleApplyPreset(preset)}
+                  title={preset.description}
+                  className="whitespace-nowrap px-3 py-1.5 rounded-lg bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-2 border border-bolt-elements-borderColor hover:border-amber-400/50 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary transition-all duration-150 flex items-center gap-1.5"
                 >
-                  <span className={`${tab.icon} text-lg`} />
-                  <span>{tab.label}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                  <span>{preset.name}</span>
                 </button>
               ))}
             </div>
 
-            {/* Content Area */}
-            <div className=" min-h-92 overflow-y-auto">
-              {activeSection === 'colors' && renderColorSection()}
-              {activeSection === 'typography' && renderTypographySection()}
-              {activeSection === 'features' && renderFeaturesSection()}
+            {/* Search Input & Navigation Tabs */}
+            <div className="flex flex-col gap-2">
+              <div className="relative">
+                <span className="i-ph:magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-bolt-elements-textTertiary text-base" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Filter across 280+ frameworks, UI libraries, animation engines, effects, typography..."
+                  className="w-full pl-9 pr-8 py-2 rounded-xl bg-bolt-elements-bg-depth-3 border border-bolt-elements-borderColor text-xs sm:text-sm text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary focus:outline-none focus:border-amber-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary text-xs"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {/* Tabs */}
+              <div className="flex gap-1 overflow-x-auto p-1 bg-bolt-elements-bg-depth-3 rounded-xl custom-scrollbar">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                      activeTab === tab.key
+                        ? 'bg-bolt-elements-bg-depth-1 text-bolt-elements-textPrimary shadow-sm border border-bolt-elements-borderColorActive'
+                        : 'text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary hover:bg-bolt-elements-bg-depth-2'
+                    }`}
+                  >
+                    <span className={`${tab.icon} text-base ${activeTab === tab.key ? 'text-amber-400' : ''}`} />
+                    <span>{tab.label}</span>
+                    <span className="px-1.5 py-0.2 rounded-md bg-bolt-elements-bg-depth-2 text-[10px] text-bolt-elements-textTertiary font-mono">
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-bolt-elements-textSecondary">
-                {Object.keys(palette).length} colors • {font.length} fonts • {features.length} features
+            {/* Main Interactive Studio Content Pane */}
+            <div className="min-h-72 max-h-[48vh] overflow-y-auto pr-1 custom-scrollbar">
+              {/* TAB 1: FRAMEWORKS */}
+              {activeTab === 'frameworks' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredFrameworks.map((item) => {
+                    const isSelected = framework === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setFramework(item.id)}
+                        className={`text-left p-3.5 rounded-xl border transition-all duration-200 flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-amber-500/10 border-amber-400/80 shadow-md ring-1 ring-amber-500/40'
+                            : 'bg-bolt-elements-bg-depth-3 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive hover:bg-bolt-elements-bg-depth-2'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <span className="font-semibold text-sm text-bolt-elements-textPrimary">{item.name}</span>
+                            {item.badge && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-400/20 text-amber-300 border border-amber-400/30 whitespace-nowrap">
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-bolt-elements-textSecondary line-clamp-2 leading-relaxed mb-2">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <div>
+                          {item.bestFor && (
+                            <div className="text-[11px] text-bolt-elements-textTertiary mb-2 italic line-clamp-1">
+                              Best for: {item.bestFor}
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between text-xs pt-2 border-t border-bolt-elements-borderColor/50">
+                            <span className="font-mono text-[10px] text-bolt-elements-textTertiary">
+                              {item.npmPackage ? `pkg: ${item.npmPackage}` : 'Zero build'}
+                            </span>
+                            {isSelected && (
+                              <span className="flex items-center gap-1 text-amber-400 text-xs font-semibold">
+                                <span className="i-ph:check-bold text-xs" /> Active
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* TAB 2: UI LIBRARIES */}
+              {activeTab === 'ui' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredUI.map((item) => {
+                    const isSelected = uiLibrary === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setUiLibrary(item.id)}
+                        className={`text-left p-3.5 rounded-xl border transition-all duration-200 flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-blue-500/10 border-blue-400/80 shadow-md ring-1 ring-blue-500/40'
+                            : 'bg-bolt-elements-bg-depth-3 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive hover:bg-bolt-elements-bg-depth-2'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <span className="font-semibold text-sm text-bolt-elements-textPrimary">{item.name}</span>
+                            {item.badge && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-blue-400/20 text-blue-300 border border-blue-400/30 whitespace-nowrap">
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-bolt-elements-textSecondary line-clamp-2 leading-relaxed mb-2">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <div>
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {item.tags.slice(0, 3).map((tag) => (
+                              <span
+                                key={tag}
+                                className="px-1.5 py-0.5 rounded bg-bolt-elements-bg-depth-1 text-[10px] text-bolt-elements-textTertiary"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between text-xs pt-2 border-t border-bolt-elements-borderColor/50">
+                            <span className="font-mono text-[10px] text-bolt-elements-textTertiary line-clamp-1">
+                              {item.npmPackage || 'CSS'}
+                            </span>
+                            {isSelected && (
+                              <span className="flex items-center gap-1 text-blue-400 text-xs font-semibold">
+                                <span className="i-ph:check-bold text-xs" /> Active
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* TAB 3: ANIMATION & MOTION */}
+              {activeTab === 'animation' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredAnimation.map((item) => {
+                    const isSelected = animationLibrary === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setAnimationLibrary(item.id)}
+                        className={`text-left p-3.5 rounded-xl border transition-all duration-200 flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-purple-500/10 border-purple-400/80 shadow-md ring-1 ring-purple-500/40'
+                            : 'bg-bolt-elements-bg-depth-3 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive hover:bg-bolt-elements-bg-depth-2'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <span className="font-semibold text-sm text-bolt-elements-textPrimary">{item.name}</span>
+                            {item.badge && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-purple-400/20 text-purple-300 border border-purple-400/30 whitespace-nowrap">
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-bolt-elements-textSecondary line-clamp-2 leading-relaxed mb-2">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <div>
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {item.tags.slice(0, 3).map((tag) => (
+                              <span
+                                key={tag}
+                                className="px-1.5 py-0.5 rounded bg-bolt-elements-bg-depth-1 text-[10px] text-bolt-elements-textTertiary"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between text-xs pt-2 border-t border-bolt-elements-borderColor/50">
+                            <span className="font-mono text-[10px] text-bolt-elements-textTertiary line-clamp-1">
+                              {item.npmPackage || 'Engine'}
+                            </span>
+                            {isSelected && (
+                              <span className="flex items-center gap-1 text-purple-400 text-xs font-semibold">
+                                <span className="i-ph:check-bold text-xs" /> Active
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* TAB 4: 2026 COMMODITIES & EFFECTS */}
+              {activeTab === 'commodities' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-bolt-elements-textSecondary">
+                    <span>Select active visual commodities ({commodities.length} active):</span>
+                    <button
+                      onClick={() => setCommodities([])}
+                      className="text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary"
+                    >
+                      Deselect all
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {filteredCommodities.map((item) => {
+                      const isSelected = commodities.includes(item.id);
+
+                      return (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => handleCommodityToggle(item.id)}
+                          className={`text-left p-3.5 rounded-xl border transition-all duration-200 flex flex-col justify-between ${
+                            isSelected
+                              ? 'bg-amber-500/10 border-amber-400/80 shadow-md ring-1 ring-amber-500/40'
+                              : 'bg-bolt-elements-bg-depth-3 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive hover:bg-bolt-elements-bg-depth-2'
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-start justify-between gap-2 mb-1.5">
+                              <span className="font-semibold text-sm text-bolt-elements-textPrimary">{item.name}</span>
+                              {item.badge && (
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-400/20 text-amber-300 border border-amber-400/30 whitespace-nowrap">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-bolt-elements-textSecondary line-clamp-2 leading-relaxed mb-2">
+                              {item.description}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs pt-2 border-t border-bolt-elements-borderColor/50">
+                            <span className="text-[11px] text-bolt-elements-textTertiary">
+                              {isSelected ? 'Enabled' : 'Click to enable'}
+                            </span>
+                            <div
+                              className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${
+                                isSelected
+                                  ? 'bg-amber-500 border-amber-500 text-black'
+                                  : 'border-bolt-elements-borderColor'
+                              }`}
+                            >
+                              {isSelected && <span className="i-ph:check-bold text-xs" />}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: TYPOGRAPHY PAIRINGS */}
+              {activeTab === 'typography' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredTypography.map((item) => {
+                    const isSelected = typographyPairing === item.id;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setTypographyPairing(item.id)}
+                        className={`text-left p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between ${
+                          isSelected
+                            ? 'bg-amber-500/10 border-amber-400/80 shadow-md ring-1 ring-amber-500/40'
+                            : 'bg-bolt-elements-bg-depth-3 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive hover:bg-bolt-elements-bg-depth-2'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <span className="font-bold text-base text-bolt-elements-textPrimary">{item.name}</span>
+                            {item.badge && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-400/20 text-amber-300 border border-amber-400/30 whitespace-nowrap">
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-bolt-elements-textSecondary leading-relaxed mb-3">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs pt-2 border-t border-bolt-elements-borderColor/50">
+                          <span className="font-mono text-xs text-bolt-elements-textTertiary">
+                            Heading: {item.name.split('+')[0]?.trim()} / Body: {item.name.split('+')[1]?.trim()}
+                          </span>
+                          {isSelected && (
+                            <span className="flex items-center gap-1 text-amber-400 text-xs font-semibold">
+                              <span className="i-ph:check-bold text-xs" /> Active
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* TAB 6: PALETTES & HEX COLOR ROLES */}
+              {activeTab === 'colors' && (
+                <div className="space-y-6">
+                  {/* Curated Luxury Harmonies */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-bolt-elements-textPrimary mb-2 flex items-center gap-2">
+                      <span className="i-ph:swatches text-amber-400" />
+                      Curated Signature Themes (Click to apply)
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                      {filteredPalettes.map((item) => {
+                        const preset = curatedPaletteMaps[item.id];
+
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => handleApplyPalette(item.id)}
+                            className="text-left p-3 rounded-xl bg-bolt-elements-bg-depth-3 hover:bg-bolt-elements-bg-depth-2 border border-bolt-elements-borderColor hover:border-amber-400/60 transition-all group"
+                          >
+                            <div className="font-medium text-xs text-bolt-elements-textPrimary group-hover:text-amber-300 mb-1.5 line-clamp-1">
+                              {item.name}
+                            </div>
+                            {preset && (
+                              <div className="flex h-4 rounded-md overflow-hidden border border-bolt-elements-borderColor">
+                                <div className="flex-1" style={{ backgroundColor: preset.primary }} />
+                                <div className="flex-1" style={{ backgroundColor: preset.secondary }} />
+                                <div className="flex-1" style={{ backgroundColor: preset.accent }} />
+                                <div className="flex-1" style={{ backgroundColor: preset.surface }} />
+                                <div className="flex-1" style={{ backgroundColor: preset.background }} />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Individual Role Hex Pickers */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
+                        <span className="i-ph:sliders text-amber-400" />
+                        Fine-Tune Individual Color Roles
+                      </h4>
+                      <button
+                        onClick={handleReset}
+                        className="text-xs text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary flex items-center gap-1"
+                      >
+                        <span className="i-ph:arrow-clockwise text-xs" /> Reset
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                      {paletteRoles.map((role) => (
+                        <div
+                          key={role.key}
+                          className="flex items-center gap-3 p-3 rounded-xl bg-bolt-elements-bg-depth-3 border border-bolt-elements-borderColor"
+                        >
+                          <div className="relative flex-shrink-0">
+                            <div
+                              className="w-10 h-10 rounded-lg shadow cursor-pointer transition-all hover:scale-105 border border-white/10"
+                              style={{ backgroundColor: palette[role.key] || '#111111' }}
+                              onClick={() => document.getElementById(`color-input-${role.key}`)?.click()}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={`Change ${role.label} color`}
+                            />
+                            <input
+                              id={`color-input-${role.key}`}
+                              type="color"
+                              value={palette[role.key] || '#111111'}
+                              onChange={(e) => handleColorChange(role.key, e.target.value)}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              tabIndex={-1}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-xs text-bolt-elements-textPrimary">{role.label}</div>
+                            <div className="text-[10px] text-bolt-elements-textTertiary font-mono">
+                              {palette[role.key]}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 7: SURFACE FX */}
+              {activeTab === 'features' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {designFeatures.map((f) => {
+                    const isSelected = features.includes(f.key);
+
+                    return (
+                      <button
+                        key={f.key}
+                        type="button"
+                        onClick={() => handleFeatureToggle(f.key)}
+                        className={`p-4 rounded-xl border text-left transition-all duration-200 flex items-center justify-between ${
+                          isSelected
+                            ? 'bg-amber-500/10 border-amber-400/80 shadow-md ring-1 ring-amber-500/40 text-amber-300'
+                            : 'bg-bolt-elements-bg-depth-3 border-bolt-elements-borderColor hover:border-bolt-elements-borderColorActive hover:bg-bolt-elements-bg-depth-2 text-bolt-elements-textPrimary'
+                        }`}
+                      >
+                        <span className="font-semibold text-sm">{f.label}</span>
+                        <div
+                          className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${
+                            isSelected ? 'bg-amber-500 border-amber-500 text-black' : 'border-bolt-elements-borderColor'
+                          }`}
+                        >
+                          {isSelected && <span className="i-ph:check-bold text-xs" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Studio Footer Summary & Action Controls */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-bolt-elements-borderColor text-xs">
+              <div className="text-bolt-elements-textSecondary flex items-center gap-1.5 flex-wrap">
+                <span className="text-amber-400 font-semibold">{activeFrameworkObj?.name}</span>
+                <span>•</span>
+                <span>{activeUIObj?.name}</span>
+                <span>•</span>
+                <span>{activeMotionObj?.name}</span>
+                <span>•</span>
+                <span>{commodities.length} FX</span>
+                <span>•</span>
+                <span>{activeTypoObj?.name}</span>
               </div>
-              <div className="flex gap-3">
-                <Button variant="secondary" onClick={() => setIsDialogOpen(false)}>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <Button variant="secondary" onClick={() => setIsDialogOpen(false)} className="text-xs px-3 py-1.5">
                   Cancel
                 </Button>
                 <Button
                   variant="ghost"
                   onClick={handleSave}
-                  className="bg-bolt-elements-button-primary-background hover:bg-bolt-elements-button-primary-backgroundHover text-bolt-elements-button-primary-text"
+                  className="bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs px-4 py-1.5 rounded-lg shadow transition-all duration-150 flex items-center gap-1"
                 >
-                  Save Changes
+                  <span className="i-ph:check-bold text-xs" />
+                  Save & Apply Stack
                 </Button>
               </div>
             </div>
@@ -347,6 +752,7 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
+          height: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
           background: transparent;
@@ -358,19 +764,17 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background-color: var(--bolt-elements-textSecondary);
         }
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
-        }
-        .feature-card-container {
-          min-height: 140px;
-          display: flex;
-          align-items: stretch;
-        }
-        .feature-card-container button {
-          flex: 1;
         }
       `}</style>
     </div>

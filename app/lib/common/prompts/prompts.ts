@@ -428,9 +428,14 @@ You are Zoth WebGen Architect, an expert AI assistant and exceptional senior sof
       - Always prioritize user needs and iterate based on feedback.
       
       <user_provided_design>
-        USER PROVIDED DESIGN SCHEME:
-        - ALWAYS use the user provided design scheme when creating designs ensuring it complies with the professionalism of design instructions below, unless the user specifically requests otherwise.
-        FONT: ${JSON.stringify(designScheme?.font)}
+        USER PROVIDED ARCHITECTURE & DESIGN SCHEME:
+        - ALWAYS use the user provided architecture, framework, and design scheme when creating applications ensuring it complies with the instructions below, unless the user specifically requests otherwise.
+        FRAMEWORK / ARCHITECTURE: ${JSON.stringify(designScheme?.framework || 'vite-react')}
+        UI LIBRARY / DESIGN SYSTEM: ${JSON.stringify(designScheme?.uiLibrary || 'shadcn-ui')}
+        ANIMATION & MOTION ENGINE: ${JSON.stringify(designScheme?.animationLibrary || 'framer-motion')}
+        COMMODITIES & 2026 VISUAL FX: ${JSON.stringify(designScheme?.commodities || ['conic-border-beam', 'aurora-mesh-gradient'])}
+        TYPOGRAPHY PAIRING: ${JSON.stringify(designScheme?.typographyPairing || 'syne-space-grotesk')}
+        FONT FAMILIES: ${JSON.stringify(designScheme?.font)}
         COLOR PALETTE: ${JSON.stringify(designScheme?.palette)}
         FEATURES: ${JSON.stringify(designScheme?.features)}
       </user_provided_design>

@@ -24,6 +24,54 @@ interface StarterTemplatesProps {
   onSelectPrompt?: (prompt: string) => void;
 }
 
+const CORE_FRAMEWORKS = [
+  {
+    id: 'astro',
+    label: 'Astro (Latest 5+)',
+    icon: 'i-bolt:astro',
+    badge: 'Islands • 0-JS',
+    accent: '#FF5D01',
+    prompt:
+      'Scaffold a production Astro 5 web application using component islands, Tailwind CSS, content collections, and responsive layout.',
+  },
+  {
+    id: 'vite-react',
+    label: 'Vite + React 19',
+    icon: 'i-bolt:react',
+    badge: 'React 19 • Fast HMR',
+    accent: '#00D8FF',
+    prompt:
+      'Scaffold a modern Vite + React 19 single-page application with TypeScript, Tailwind CSS, and Lucide icons.',
+  },
+  {
+    id: 'vanilla-js',
+    label: 'Vanilla JS',
+    icon: 'i-bolt:vite',
+    badge: 'Pure JS • 0-Bloat',
+    accent: '#F7DF1E',
+    prompt:
+      'Build a pure Vanilla JavaScript (ES Modules) web application using Vite with modular DOM manipulation and zero heavy frameworks.',
+  },
+  {
+    id: 'html-css-js',
+    label: 'HTML5 + CSS3 + JS',
+    icon: 'i-bolt:html5',
+    badge: 'Zero-Build • Static',
+    accent: '#E34F26',
+    prompt:
+      'Create a clean, zero-build static web application featuring semantic HTML5, modern CSS3 styling, and vanilla JavaScript without any node build dependencies.',
+  },
+  {
+    id: 'nextjs',
+    label: 'Next.js + shadcn',
+    icon: 'i-bolt:nextjs',
+    badge: 'Fullstack App Router',
+    accent: '#FFFFFF',
+    prompt:
+      'Scaffold a Next.js App Router application integrated with shadcn/ui components, Tailwind CSS, and Lucide icons.',
+  },
+];
+
 const DESIGN_2026_STACKS = [
   {
     id: 'avant-garde',
@@ -57,7 +105,39 @@ const DESIGN_2026_STACKS = [
 const StarterTemplates: React.FC<StarterTemplatesProps> = ({ onSelectPrompt }) => {
   return (
     <div className="flex flex-col items-center gap-5 w-full max-w-chat mx-auto px-4 mt-2">
-      {/* 2026 Curated Design Archetypes */}
+      {/* 1. Core Framework Selection Options (Astro, Vite React, Vanilla JS, HTML/CSS/JS) */}
+      <div className="w-full">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <span className="text-xs font-mono font-bold uppercase tracking-wider text-white/80 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            Framework Architecture Options
+          </span>
+          <span className="text-[10px] font-mono text-white/40">1-Click Scaffolding</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          {CORE_FRAMEWORKS.map((fw) => (
+            <button
+              key={fw.id}
+              type="button"
+              onClick={() => onSelectPrompt?.(fw.prompt)}
+              className="group flex flex-col items-start p-2.5 rounded-xl border border-white/10 bg-[#0F0F16]/90 hover:border-cyan-400/50 hover:bg-[#161622] transition-all duration-200 cursor-pointer text-left"
+            >
+              <div className="flex items-center gap-1.5 mb-1 w-full justify-between">
+                <div className={`${fw.icon} text-lg text-white/80 group-hover:text-cyan-400 transition-colors`} />
+                <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-white/5 border border-white/5 text-white/60">
+                  {fw.badge}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors">
+                {fw.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 2. 2026 Curated Design Archetypes */}
       <div className="w-full">
         <div className="flex items-center justify-between mb-2 px-1">
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#D4AF37] flex items-center gap-1.5">
@@ -92,11 +172,9 @@ const StarterTemplates: React.FC<StarterTemplatesProps> = ({ onSelectPrompt }) =
         </div>
       </div>
 
-      {/* Framework Starters Row */}
+      {/* 3. Base Full-Stack Runtime Links */}
       <div className="flex flex-col items-center gap-2 pt-1 border-t border-white/5 w-full">
-        <span className="text-[11px] text-bolt-elements-textTertiary font-mono">
-          Or start from a base full-stack runtime:
-        </span>
+        <span className="text-[11px] text-bolt-elements-textTertiary font-mono">Or load WebContainer base repo:</span>
         <div className="flex flex-wrap justify-center items-center gap-2">
           {STARTER_TEMPLATES.map((template) => (
             <FrameworkLink key={template.name} template={template} />

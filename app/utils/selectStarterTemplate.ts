@@ -5,8 +5,11 @@ import type { Template } from '~/types/template';
 
 const starterTemplateSelectionPrompt = (templates: Template[]) => `
 You are an experienced developer who helps people choose the best starter template for their projects.
-IMPORTANT: Vite is preferred.
-IMPORTANT: Strongly prefer 'Vite Shadcn' or 'Vite React' for modern web applications, interactive landing pages, motion designs, and rich UI projects.
+Selection guidelines:
+- If the user explicitly requests 'Astro' or content collections, select 'Astro'.
+- If the user requests 'Vanilla JS' or vanilla JavaScript without a framework, select 'Vanilla JS'.
+- If the user requests 'HTML CSS JS' or zero-build standalone static site, select 'HTML CSS JS'.
+- For modern web applications, interactive landing pages, motion designs, and rich UI projects, prefer 'Vite React' or 'Vite Shadcn'.
 
 Available templates:
 <template>

@@ -92,8 +92,24 @@ export const ChatImpl = memo(
     const [searchParams, setSearchParams] = useSearchParams();
     const [fakeLoading, setFakeLoading] = useState(false);
     const files = useStore(workbenchStore.files);
-    const [designScheme, setDesignScheme] = useState<DesignScheme>(defaultDesignScheme);
     const actionAlert = useStore(workbenchStore.alert);
+
+    const [designScheme, setDesignScheme] = useState<DesignScheme>(() => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('zoth_design_scheme');
+
+          if (saved) {
+            return JSON.parse(saved);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      return defaultDesignScheme;
+    });
+
     const deployAlert = useStore(workbenchStore.deployAlert);
     const supabaseConn = useStore(supabaseConnection);
 

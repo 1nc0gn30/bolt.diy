@@ -234,6 +234,11 @@ The year is 2025.
   ${
     designScheme
       ? `
+  FRAMEWORK / ARCHITECTURE: ${JSON.stringify(designScheme.framework || 'vite-react')}
+  UI LIBRARY / DESIGN SYSTEM: ${JSON.stringify(designScheme.uiLibrary || 'shadcn-ui')}
+  ANIMATION & MOTION ENGINE: ${JSON.stringify(designScheme.animationLibrary || 'framer-motion')}
+  COMMODITIES & 2026 VISUAL FX: ${JSON.stringify(designScheme.commodities || [])}
+  TYPOGRAPHY PAIRING: ${JSON.stringify(designScheme.typographyPairing || 'syne-space-grotesk')}
   FONT: ${JSON.stringify(designScheme.font)}
   PALETTE: ${JSON.stringify(designScheme.palette)}
   FEATURES: ${JSON.stringify(designScheme.features)}`
