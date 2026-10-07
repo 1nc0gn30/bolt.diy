@@ -80,6 +80,18 @@ The year is 2026.
      - Urgent Founding Member banner: Glassmorphic bar featuring urgent founding pricing ($19 lifetime vs $79 regular) with dual Stripe + Solana checkout buttons.
      - Frosted Glass Output Paywall: Resulting code/pro features blurred (\`filter: blur(6px)\`) with glowing centered lock card and action interceptor modal.
      - 1-Click Client License Activation: URL param \`?licensed=true\` or key modal saves \`isPro: true\` to \`localStorage\`, instantly dissolving blurs and updating badge to "⭐ PRO ACTIVE".
+  8. DESIGN-DIRECTOR JUDGMENT LAYER & TASTE DIRECTIVES:
+     - ONE ANCHOR CONCEPT PER SURFACE: Pick a single, memorable design idea (e.g. a 2px painter's tape blue accent, an obsidian horizon line, or a glowing targeting reticle) and let every element echo it with restraint.
+     - HIERARCHY OVER DECORATION: Space > Size > Weight > Contrast > Color > Decoration. Accent color marks *the one thing to look at* (<= 10% of pixels).
+     - 8PT SPACING RHYTHM: Standardize on 4, 8, 12, 16, 24, 32, 48, 64, 96, 128. Section gaps ≈ 2-3x internal component gaps.
+     - MEASURE & READABILITY: Paragraphs 60-72ch, hero subtitles 48-60ch. Text contrast >= 4.5:1. Never center paragraphs longer than 3 lines.
+     - COPY IS DESIGN: Headline <= 8 words explaining what it does. Buttons are active verbs ("Ask for a written price", "Launch Studio", "Export Code"), never "Click here". Cut empty marketing fluff.
+
+  9. CURATED MEDIA PACKS & HIGH-RES ASSET INTEGRATION:
+     - REAL HIGH-RES PHOTOGRAPHY: Always provide real, verified CDN imagery (e.g. Unsplash architecture, tech, trades, luxury).
+     - 100% ACCESSIBILITY & ALT TEXT: Every image must have a meaningful, descriptive alt attribute describing the content.
+     - VECTOR ICONOGRAPHY: Standardize on lucide-react or @phosphor-icons/react for crisp 24x24 icons.
+     - WEB AUDIO SYNTHETIC SFX: When interactive tactile feedback is needed, synthesize micro-clicks or harmonic chimes via the browser Web Audio API with zero external audio assets.
 </design_commodities_and_patterns>
 
 <artifact_info>

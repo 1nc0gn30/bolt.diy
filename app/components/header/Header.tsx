@@ -1,6 +1,8 @@
 import { useStore } from '@nanostores/react';
+import { useState } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
+import { AgyTerminalModal } from '~/components/terminal/AgyTerminalModal';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
 import { chatStore } from '~/lib/stores/chat';
 import { isProLicensedStore, openPaywall, openDePayCheckout } from '~/lib/stores/license';
@@ -9,6 +11,7 @@ import { classNames } from '~/utils/classNames';
 export function Header() {
   const chat = useStore(chatStore);
   const isLicensed = useStore(isProLicensedStore);
+  const [isAgyTerminalOpen, setIsAgyTerminalOpen] = useState(false);
 
   return (
     <header
@@ -37,17 +40,22 @@ export function Header() {
       </div>
 
       {!chat.started && (
-        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-[#0D0D12]/90 border border-[#D4AF37]/30 text-xs font-mono text-white/80 shadow-[0_0_12px_rgba(212,175,55,0.1)]">
+        <button
+          type="button"
+          onClick={() => setIsAgyTerminalOpen(true)}
+          className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-[#0D0D12]/90 hover:bg-[#181822] border border-[#D4AF37]/30 hover:border-[#D4AF37]/60 text-xs font-mono text-white/80 shadow-[0_0_12px_rgba(212,175,55,0.1)] transition-all cursor-pointer group"
+          title="Click to launch AGY & ZothOS Host Terminal"
+        >
           <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-          <span className="font-bold text-[#D4AF37]">ZOTHOS ENGINES</span>
+          <span className="font-bold text-[#D4AF37] group-hover:text-amber-300">ZOTHOS ENGINES</span>
           <span className="text-white/30">•</span>
           <span className="text-white/70">AGY · Hermes · Ollama</span>
           <span className="text-white/30">•</span>
           <span className="text-emerald-400 font-semibold flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            MCP Live
+            Terminal Live
           </span>
-        </div>
+        </button>
       )}
 
       {chat.started && (
@@ -58,6 +66,18 @@ export function Header() {
 
       {/* Header Monetization & Action Buttons */}
       <div className="flex items-center gap-2">
+        {/* Quick AGY Terminal Launch Button */}
+        <button
+          type="button"
+          onClick={() => setIsAgyTerminalOpen(true)}
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/40 bg-black/60 hover:bg-amber-500/10 text-amber-400 text-xs font-mono font-medium transition-all shadow-[0_0_10px_rgba(212,175,55,0.1)] cursor-pointer"
+          title="Open AGY & ZothOS Host Terminal"
+        >
+          <span className="i-ph:terminal-window text-sm" />
+          <span className="hidden sm:inline">AGY Terminal</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        </button>
+
         <ClientOnly>
           {() => (
             <>
@@ -100,6 +120,10 @@ export function Header() {
           </ClientOnly>
         )}
       </div>
+
+      <ClientOnly>
+        {() => <AgyTerminalModal isOpen={isAgyTerminalOpen} onClose={() => setIsAgyTerminalOpen(false)} />}
+      </ClientOnly>
     </header>
   );
 }
