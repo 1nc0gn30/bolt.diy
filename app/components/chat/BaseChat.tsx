@@ -158,10 +158,13 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     useWebGenMcpBridge({
       textareaRef,
       sendMessage,
+      handleInputChange,
       setModel,
       setProvider,
       providerList,
       isStreaming,
+      designScheme,
+      setDesignScheme,
     });
 
     useEffect(() => {

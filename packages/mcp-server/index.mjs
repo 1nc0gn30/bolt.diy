@@ -54,8 +54,113 @@ const TOOLS = [
           type: 'string',
           description: 'Optional provider name (e.g., "ZothLocal", "Google", "Anthropic", "OpenAI", "Ollama").',
         },
+        framework: {
+          type: 'string',
+          description: 'Optional framework architecture: "astro", "vite-react", "vanilla-js", "html-css-js".',
+        },
       },
       required: ['prompt'],
+    },
+  },
+  {
+    name: 'webgen_run_tool',
+    description: 'Executes ZothOS host AI tools (Antigravity agy, Nous Hermes, Claude Code, Ollama, bash) with optional piping of the output directly into the WebGen chat prompt.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        tool: {
+          type: 'string',
+          description: 'Host tool binary name: "agy", "hermes", "claude", "ollama", "git", or "bash".',
+        },
+        command: {
+          type: 'string',
+          description: 'Full command string if not using tool+args (e.g. "agy models" or "hermes -z \\"build spec\\"").',
+        },
+        args: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Arguments array (e.g. ["-p", "write design spec", "--output-format", "json"]).',
+        },
+        pipeToPrompt: {
+          type: 'boolean',
+          description: 'If true, injects stdout/stderr directly into active WebGen prompt textarea in browser.',
+        },
+        pipeAndBuild: {
+          type: 'boolean',
+          description: 'If true, injects output into WebGen prompt AND immediately executes autonomous synthesis.',
+        },
+        cwd: {
+          type: 'string',
+          description: 'Optional working directory path.',
+        },
+      },
+    },
+  },
+  {
+    name: 'webgen_select_framework',
+    description: 'Selects the framework architecture in Zoth WebGen (Astro 5+, Vite React 19, Vanilla JS, Zero-Build HTML5+CSS3+JS, Next.js, etc.).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        framework: {
+          type: 'string',
+          description: 'Framework ID: "astro", "vite-react", "vanilla-js", "html-css-js", "nextjs", "sveltekit", "solidjs", "vue".',
+        },
+      },
+      required: ['framework'],
+    },
+  },
+  {
+    name: 'webgen_apply_design_preset',
+    description: 'Applies an avant-garde design system preset or custom scheme (Imperial Gold, Solana Emerald, Tokyo Night, Nordic Frost, Acid Lime, etc.).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        presetId: {
+          type: 'string',
+          description: 'Studio Preset ID: "imperial-gold", "solana-emerald", "cyberpunk-neon", "tokyo-night", "nordic-frost", "minimal-monochrome", "acid-lime".',
+        },
+        scheme: {
+          type: 'object',
+          description: 'Custom scheme properties (framework, uiLibrary, animationLibrary, commodities, typographyPairing, palette).',
+        },
+      },
+    },
+  },
+  {
+    name: 'webgen_get_design_catalog',
+    description: 'Retrieves the catalog of 380+ frameworks, UI design systems, motion engines, visual commodities, typography pairings, and media packs.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        category: {
+          type: 'string',
+          description: 'Optional category filter: "frameworks", "ui", "animation", "commodities", "typography", "colors", "media".',
+        },
+        query: {
+          type: 'string',
+          description: 'Optional search keyword (e.g. "three.js", "syne", "astro", "luxury").',
+        },
+      },
+    },
+  },
+  {
+    name: 'webgen_insert_media_pack',
+    description: 'Injects verified high-resolution photography collections (Unsplash CDNs), Web Audio synthetic sound effects, or vector icon suites for an industry into the active prompt or workspace.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        industry: {
+          type: 'string',
+          description: 'Industry pack: "luxury", "saas", "trades", "fintech", "editorial", "general".',
+        },
+        destination: {
+          type: 'string',
+          enum: ['prompt', 'workspace'],
+          description: 'Target location: "prompt" appends asset references to chat input; "workspace" writes a media-manifest.json to WebContainer.',
+        },
+      },
+      required: ['industry'],
     },
   },
   {
@@ -154,6 +259,50 @@ async function handleToolCall(name, args) {
         prompt: args.prompt,
         model: args.model,
         provider: args.provider,
+        template: args.framework,
+      });
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'webgen_run_tool': {
+      const result = await callWebGen('run_tool', {
+        tool: args.tool,
+        command: args.command,
+        args: args.args,
+        pipeToPrompt: args.pipeToPrompt,
+        pipeAndBuild: args.pipeAndBuild,
+        cwd: args.cwd,
+      });
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'webgen_select_framework': {
+      const result = await callWebGen('select_framework', {
+        framework: args.framework,
+      });
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'webgen_apply_design_preset': {
+      const result = await callWebGen('apply_design_preset', {
+        presetId: args.presetId,
+        scheme: args.scheme,
+      });
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'webgen_get_design_catalog': {
+      const result = await callWebGen('get_design_catalog', {
+        category: args.category,
+        query: args.query,
+      });
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'webgen_insert_media_pack': {
+      const result = await callWebGen('insert_media_pack', {
+        industry: args.industry,
+        destination: args.destination || 'prompt',
       });
       return JSON.stringify(result, null, 2);
     }
@@ -225,7 +374,7 @@ rl.on('line', async (line) => {
           },
           serverInfo: {
             name: 'zoth-webgen-mcp',
-            version: '1.0.0',
+            version: '2.0.0',
             creator: 'Neal Frazier Tech (@1nc0gn30)',
           },
         },

@@ -9,7 +9,7 @@
 export interface CuratedMediaAsset {
   id: string;
   category: 'photography' | 'illustration' | 'icon-pack' | 'audio-sfx' | '3d-asset';
-  industry: 'saas' | 'luxury' | 'trades' | 'fintech' | 'editorial' | 'general';
+  industry: 'saas' | 'luxury' | 'trades' | 'fintech' | 'editorial' | 'automotive' | 'medical' | 'general';
   title: string;
   url: string;
   thumbnailUrl?: string;
@@ -103,7 +103,7 @@ export const CURATED_PHOTOGRAPHY_PACKS: CuratedMediaAsset[] = [
     tags: ['datacenter', 'servers', 'infrastructure', 'cloud'],
   },
 
-  // Trade Services & Craftsmanship (Painters, Contractors, Detailing)
+  // Trade Services & Craftsmanship (Painters, Contractors, Builders)
   {
     id: 'trades-fine-finish-painting-1',
     category: 'photography',
@@ -162,6 +162,54 @@ export const CURATED_PHOTOGRAPHY_PACKS: CuratedMediaAsset[] = [
     tags: ['card', 'fintech', 'titanium', 'payments'],
   },
 
+  // Automotive & Detailing
+  {
+    id: 'auto-supercar-beading-1',
+    category: 'photography',
+    industry: 'automotive',
+    title: 'Hydrophobic Ceramic Coating Water Beading',
+    url: 'https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1600&q=80',
+    alt: 'Microscopic spherical water beads rolling off high-gloss black ceramic coated sports car hood',
+    aspectRatio: '16:9',
+    credit: 'Unsplash Automotive Detail',
+    tags: ['detailing', 'supercar', 'ceramic', 'hydrophobic', 'gloss'],
+  },
+  {
+    id: 'auto-stealth-coupe-2',
+    category: 'photography',
+    industry: 'automotive',
+    title: 'Satin Dark Exotic GT in Studio Lighting',
+    url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=80',
+    alt: 'Satin black exotic sports car illuminated by overhead strip studio lights',
+    aspectRatio: '16:9',
+    credit: 'Unsplash Exotic Motors',
+    tags: ['automotive', 'exotic', 'studio', 'satin-black'],
+  },
+
+  // Medical & Biotechnology
+  {
+    id: 'medical-surgical-suite-1',
+    category: 'photography',
+    industry: 'medical',
+    title: 'State-of-the-Art Minimalist Medical Suite',
+    url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=80',
+    alt: 'Clean minimalist medical examination room with ambient sapphire lighting and warm natural wood accents',
+    aspectRatio: '16:9',
+    credit: 'Unsplash Clinical Healthcare',
+    tags: ['medical', 'clinic', 'modern', 'surgical', 'healthcare'],
+  },
+  {
+    id: 'medical-dna-lattice-2',
+    category: 'photography',
+    industry: 'medical',
+    title: 'Molecular Biotechnology Lattice',
+    url: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1600&q=80',
+    alt: 'High-magnification biochemical research glassware with refraction patterns',
+    aspectRatio: '16:9',
+    credit: 'Unsplash Biotech Research',
+    tags: ['biotech', 'research', 'laboratory', 'science'],
+  },
+
   // Creative & Editorial
   {
     id: 'editorial-fashion-silhouette-1',
@@ -174,6 +222,17 @@ export const CURATED_PHOTOGRAPHY_PACKS: CuratedMediaAsset[] = [
     credit: 'Unsplash Fashion Editorial',
     tags: ['fashion', 'editorial', 'silhouette', 'rim-light'],
   },
+  {
+    id: 'editorial-minimal-sculpture-2',
+    category: 'photography',
+    industry: 'editorial',
+    title: 'Brutalist Travertine Monolith',
+    url: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80',
+    alt: 'Monolithic geometric stone sculpture casting crisp diagonal shadows on pure concrete',
+    aspectRatio: '16:9',
+    credit: 'Unsplash Fine Art',
+    tags: ['editorial', 'monolith', 'stone', 'shadows'],
+  },
 ];
 
 /*
@@ -185,18 +244,21 @@ export const SYNTHETIC_SFX_COLLECTION: SoundEffectDefinition[] = [
   {
     id: 'tactile-click',
     name: 'Mechanical Tactile Click',
-    description: 'Crisp, subtle button click sound synthesized with a rapid 800Hz to 200Hz sine drop in 40ms.',
+    description: 'Crisp, subtle button click sound synthesized with a rapid 800Hz to 180Hz sine drop in 40ms.',
     category: 'click',
     implementationCode: `
 export function playTactileClick() {
+  if (typeof window === 'undefined') return;
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'sine';
     osc.frequency.setValueAtTime(800, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.04);
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -213,20 +275,23 @@ export function playTactileClick() {
     category: 'chime',
     implementationCode: `
 export function playSuccessChime() {
+  if (typeof window === 'undefined') return;
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
     const freqs = [523.25, 659.25, 783.99]; // C5, E5, G5
     freqs.forEach((f, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.06);
-      gain.gain.setValueAtTime(0.06, ctx.currentTime + i * 0.06);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.06 + 0.4);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime + i * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.06 + 0.35);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(ctx.currentTime + i * 0.06);
-      osc.stop(ctx.currentTime + i * 0.06 + 0.4);
+      osc.stop(ctx.currentTime + i * 0.06 + 0.35);
     });
   } catch {}
 }
@@ -239,13 +304,16 @@ export function playSuccessChime() {
     category: 'swoosh',
     implementationCode: `
 export function playApertureSwoosh() {
+  if (typeof window === 'undefined') return;
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
     const bufferSize = ctx.sampleRate * 0.2;
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.08));
     }
     const noise = ctx.createBufferSource();
     noise.buffer = buffer;
@@ -254,7 +322,7 @@ export function playApertureSwoosh() {
     filter.frequency.setValueAtTime(400, ctx.currentTime);
     filter.frequency.exponentialRampToValueAtTime(2400, ctx.currentTime + 0.15);
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
     noise.connect(filter);
     filter.connect(gain);
@@ -267,17 +335,20 @@ export function playApertureSwoosh() {
   {
     id: 'terminal-keystroke',
     name: 'Phosphor CRT Terminal Keystroke',
-    description: 'Vintage 1200Hz micro-click for typewriter simulations, code reveals, and CLI inputs.',
+    description: 'Vintage 1400Hz micro-click for typewriter simulations, code reveals, and CLI inputs.',
     category: 'terminal',
     implementationCode: `
 export function playTerminalKeystroke() {
+  if (typeof window === 'undefined') return;
   try {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'square';
     osc.frequency.setValueAtTime(1400, ctx.currentTime);
-    gain.gain.setValueAtTime(0.03, ctx.currentTime);
+    gain.gain.setValueAtTime(0.02, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.015);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -288,6 +359,128 @@ export function playTerminalKeystroke() {
     `.trim(),
   },
 ];
+
+// Live Callable Web Audio Synthesizer Functions
+export function playTactileClick() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const audioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+
+    if (!audioContextClass) {
+      return;
+    }
+
+    const ctx = new audioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.04);
+  } catch {}
+}
+
+export function playSuccessChime() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const audioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+
+    if (!audioContextClass) {
+      return;
+    }
+
+    const ctx = new audioContextClass();
+    const freqs = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, ctx.currentTime + i * 0.06);
+      gain.gain.setValueAtTime(0.04, ctx.currentTime + i * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.06 + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.06);
+      osc.stop(ctx.currentTime + i * 0.06 + 0.35);
+    });
+  } catch {}
+}
+
+export function playApertureSwoosh() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const audioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+
+    if (!audioContextClass) {
+      return;
+    }
+
+    const ctx = new audioContextClass();
+    const bufferSize = ctx.sampleRate * 0.18;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.08));
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(400, ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(2400, ctx.currentTime + 0.14);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.03, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start();
+  } catch {}
+}
+
+export function playTerminalKeystroke() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    const audioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+
+    if (!audioContextClass) {
+      return;
+    }
+
+    const ctx = new audioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1400, ctx.currentTime);
+    gain.gain.setValueAtTime(0.02, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.015);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.015);
+  } catch {}
+}
 
 /*
  * ==========================================================================

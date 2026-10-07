@@ -99,6 +99,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
     // Extended PATH including local user binaries
     const env = {
+      HOME: process.env.HOME || '/home/zoth',
+      USER: process.env.USER || 'zoth',
       ...process.env,
       PATH: `/home/zoth/.local/bin:/usr/local/bin:/usr/bin:/bin:${process.env.PATH || ''}`,
       TERM: 'xterm-256color',

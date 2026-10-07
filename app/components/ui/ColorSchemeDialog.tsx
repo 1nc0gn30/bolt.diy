@@ -11,6 +11,16 @@ import {
   COLOR_PALETTES,
   type CatalogItem,
 } from '~/lib/modules/design-libraries/catalog';
+import {
+  CURATED_PHOTOGRAPHY_PACKS,
+  VECTOR_AND_ICON_LIBRARIES,
+  SYNTHETIC_SFX_COLLECTION,
+  playTactileClick,
+  playSuccessChime,
+  playApertureSwoosh,
+  playTerminalKeystroke,
+  type CuratedMediaAsset,
+} from '~/lib/modules/design-libraries/media-packs';
 import type { DesignScheme, StudioPreset } from '~/types/design-scheme';
 import {
   defaultDesignScheme,
@@ -25,7 +35,7 @@ export interface ColorSchemeDialogProps {
   setDesignScheme?: (scheme: DesignScheme) => void;
 }
 
-type StudioTab = 'frameworks' | 'ui' | 'animation' | 'commodities' | 'typography' | 'colors' | 'features';
+type StudioTab = 'frameworks' | 'ui' | 'animation' | 'commodities' | 'typography' | 'colors' | 'media' | 'features';
 
 export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignScheme, designScheme }) => {
   const [palette, setPalette] = useState<{ [key: string]: string }>(() => {
@@ -180,6 +190,50 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
   const filteredTypography = useMemo(() => filterItems(TYPOGRAPHY_PAIRINGS), [searchQuery]);
   const filteredPalettes = useMemo(() => filterItems(COLOR_PALETTES), [searchQuery]);
 
+  const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
+  const [injectedMediaId, setInjectedMediaId] = useState<string | null>(null);
+
+  const filteredMedia = useMemo(() => {
+    let list = CURATED_PHOTOGRAPHY_PACKS;
+
+    if (selectedIndustry !== 'all') {
+      list = list.filter((item) => item.industry === selectedIndustry);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(
+        (item) =>
+          item.title.toLowerCase().includes(q) ||
+          item.alt.toLowerCase().includes(q) ||
+          item.tags.some((t) => t.toLowerCase().includes(q)),
+      );
+    }
+
+    return list;
+  }, [selectedIndustry, searchQuery]);
+
+  const handleInjectMedia = async (asset: CuratedMediaAsset) => {
+    playTactileClick();
+    setInjectedMediaId(asset.id);
+
+    try {
+      await fetch('/api/webgen/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'insert_media_pack',
+          industry: asset.industry,
+          destination: 'prompt',
+        }),
+      });
+      playSuccessChime();
+      setTimeout(() => setInjectedMediaId(null), 2500);
+    } catch {
+      // Fallback
+    }
+  };
+
   const activeFrameworkObj = FRAMEWORK_OPTIONS.find((f) => f.id === framework) || FRAMEWORK_OPTIONS[1];
   const activeUIObj = UI_LIBRARIES.find((u) => u.id === uiLibrary) || UI_LIBRARIES[0];
   const activeMotionObj = ANIMATION_LIBRARIES.find((a) => a.id === animationLibrary) || ANIMATION_LIBRARIES[0];
@@ -192,6 +246,7 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     { key: 'commodities', label: '2026 FX', icon: 'i-ph:sparkle', count: COMMODITIES_AND_EFFECTS.length },
     { key: 'typography', label: 'Typography', icon: 'i-ph:text-aa', count: TYPOGRAPHY_PAIRINGS.length },
     { key: 'colors', label: 'Palettes', icon: 'i-ph:palette', count: COLOR_PALETTES.length },
+    { key: 'media', label: 'Media Packs', icon: 'i-ph:image', count: CURATED_PHOTOGRAPHY_PACKS.length },
     { key: 'features', label: 'Surface FX', icon: 'i-ph:magic-wand', count: designFeatures.length },
   ];
 
@@ -681,7 +736,173 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
                 </div>
               )}
 
-              {/* TAB 7: SURFACE FX */}
+              {/* TAB 7: MEDIA PACKS & AUDIO SFX */}
+              {activeTab === 'media' && (
+                <div className="flex flex-col gap-6">
+                  {/* Industry Filters */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+                    <span className="text-bolt-elements-textTertiary whitespace-nowrap">Filter Industry:</span>
+                    {[
+                      { id: 'all', label: 'All Media' },
+                      { id: 'luxury', label: 'Luxury & Arch' },
+                      { id: 'saas', label: 'SaaS & Dev' },
+                      { id: 'trades', label: 'Trades & Crafts' },
+                      { id: 'fintech', label: 'Fintech & Web3' },
+                      { id: 'automotive', label: 'Automotive' },
+                      { id: 'medical', label: 'Medical' },
+                      { id: 'editorial', label: 'Editorial' },
+                    ].map((ind) => (
+                      <button
+                        key={ind.id}
+                        type="button"
+                        onClick={() => {
+                          playTactileClick();
+                          setSelectedIndustry(ind.id);
+                        }}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
+                          selectedIndustry === ind.id
+                            ? 'bg-amber-500 text-black font-semibold'
+                            : 'bg-bolt-elements-bg-depth-3 text-bolt-elements-textSecondary hover:bg-bolt-elements-bg-depth-2'
+                        }`}
+                      >
+                        {ind.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Photography Grid */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-bolt-elements-textPrimary flex items-center gap-2">
+                        <span className="i-ph:camera text-amber-400" />
+                        Verified CDN Photography Collections ({filteredMedia.length})
+                      </h4>
+                      <span className="text-xs text-bolt-elements-textTertiary">Unsplash Commercial Verified CDN</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredMedia.map((asset) => (
+                        <div
+                          key={asset.id}
+                          className="group rounded-xl border border-bolt-elements-borderColor bg-bolt-elements-bg-depth-3 overflow-hidden flex flex-col hover:border-amber-400/50 transition-all duration-200"
+                        >
+                          <div className="relative aspect-video w-full overflow-hidden bg-black/40">
+                            <img
+                              src={asset.url}
+                              alt={asset.alt}
+                              loading="lazy"
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                            <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-black/70 backdrop-blur-md text-amber-300 border border-white/10 uppercase">
+                              {asset.industry}
+                            </span>
+                          </div>
+
+                          <div className="p-3 flex-1 flex flex-col justify-between gap-2">
+                            <div>
+                              <div className="font-semibold text-xs text-bolt-elements-textPrimary line-clamp-1">
+                                {asset.title}
+                              </div>
+                              <div className="text-[11px] text-bolt-elements-textTertiary mt-1 line-clamp-2">
+                                {asset.alt}
+                              </div>
+                            </div>
+
+                            <div className="pt-2 border-t border-bolt-elements-borderColor flex items-center justify-between">
+                              <span className="text-[10px] text-bolt-elements-textTertiary font-mono">
+                                {asset.aspectRatio}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleInjectMedia(asset)}
+                                className="px-2.5 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-medium flex items-center gap-1 transition-all"
+                              >
+                                <span
+                                  className={injectedMediaId === asset.id ? 'i-ph:check text-emerald-400' : 'i-ph:plus'}
+                                />
+                                <span>{injectedMediaId === asset.id ? 'Injected!' : 'Inject into Prompt'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Web Audio Synthesizer Primitives */}
+                  <div className="pt-4 border-t border-bolt-elements-borderColor">
+                    <h4 className="text-sm font-semibold text-bolt-elements-textPrimary flex items-center gap-2 mb-3">
+                      <span className="i-ph:speaker-high text-amber-400" />
+                      Zero-Dependency Web Audio Synthesizers (Click to Preview)
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {SYNTHETIC_SFX_COLLECTION.map((sfx) => (
+                        <div
+                          key={sfx.id}
+                          className="p-3 rounded-xl bg-bolt-elements-bg-depth-3 border border-bolt-elements-borderColor flex flex-col justify-between gap-2"
+                        >
+                          <div>
+                            <div className="font-semibold text-xs text-bolt-elements-textPrimary">{sfx.name}</div>
+                            <div className="text-[11px] text-bolt-elements-textTertiary mt-1">{sfx.description}</div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (sfx.id === 'tactile-click') {
+                                playTactileClick();
+                              } else if (sfx.id === 'harmonic-success-chime') {
+                                playSuccessChime();
+                              } else if (sfx.id === 'aperture-swoosh') {
+                                playApertureSwoosh();
+                              } else if (sfx.id === 'terminal-keystroke') {
+                                playTerminalKeystroke();
+                              }
+                            }}
+                            className="mt-2 w-full py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-bolt-elements-textPrimary flex items-center justify-center gap-1.5 transition-all"
+                          >
+                            <span className="i-ph:play text-amber-400" />
+                            <span>Test Audio Cue</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Vector Icon Suites */}
+                  <div className="pt-4 border-t border-bolt-elements-borderColor">
+                    <h4 className="text-sm font-semibold text-bolt-elements-textPrimary flex items-center gap-2 mb-3">
+                      <span className="i-ph:shapes text-amber-400" />
+                      Curated Vector Icon Suites & 3D Primitives
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {VECTOR_AND_ICON_LIBRARIES.map((iconLib) => (
+                        <div
+                          key={iconLib.id}
+                          className="p-3 rounded-xl bg-bolt-elements-bg-depth-3 border border-bolt-elements-borderColor flex flex-col justify-between gap-2"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-xs text-bolt-elements-textPrimary">
+                                {iconLib.name}
+                              </span>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 font-mono">
+                                {iconLib.badge}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-bolt-elements-textTertiary mt-1">
+                              {iconLib.description}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 8: SURFACE FX */}
               {activeTab === 'features' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {designFeatures.map((f) => {

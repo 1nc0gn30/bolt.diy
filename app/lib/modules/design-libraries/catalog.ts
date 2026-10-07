@@ -266,6 +266,124 @@ export const FRAMEWORK_OPTIONS: CatalogItem[] = [
     bestFor: 'Performance-critical client apps and embedded micro-frontends',
     samplePromptSnippet: 'Build using Preact and Preact Signals for ultra-compact bundle size.',
   },
+  {
+    id: 'solid-start',
+    name: 'SolidStart (Fine-Grained Reactive)',
+    category: 'framework',
+    description:
+      'Fine-grained reactive meta-framework with zero Virtual DOM overhead, fast SSR, and instant page transitions.',
+    tags: ['solid', 'solidstart', 'reactive', 'fast', 'no-vdom', 'ssr'],
+    npmPackage: '@solidjs/start',
+    badge: 'Fine-Grained',
+    bestFor: 'High-frequency telemetry, ultra-responsive dashboards, and zero-overhead web apps',
+    samplePromptSnippet: 'Scaffold using SolidStart with signals, fine-grained reactivity, and Tailwind CSS.',
+  },
+  {
+    id: 'remix-vite',
+    name: 'Remix + Vite',
+    category: 'framework',
+    description:
+      'Full-stack web framework focusing on web standards, progressive enhancement, dynamic nested loaders, and resilient optimistic UI.',
+    tags: ['remix', 'vite', 'full-stack', 'ssr', 'optimistic-ui'],
+    npmPackage: '@remix-run/react',
+    badge: 'Web Standards',
+    bestFor: 'Data-intensive forms, resilient SaaS platforms, and dynamic server-rendered workflows',
+    samplePromptSnippet: 'Implement using Remix with Vite, nested error boundaries, and optimistic UI mutations.',
+  },
+  {
+    id: 'redwood-js',
+    name: 'RedwoodJS (Integrated Full-Stack)',
+    category: 'framework',
+    description:
+      'Full-stack multi-package framework with GraphQL/RSC architecture, built-in authentication, and database migrations.',
+    tags: ['redwood', 'full-stack', 'graphql', 'auth', 'database'],
+    npmPackage: '@redwoodjs/core',
+    badge: 'Integrated',
+    bestFor: 'Sovereign startups needing all-in-one auth, routing, and data fetching',
+    samplePromptSnippet: 'Scaffold RedwoodJS cells, layouts, and schema architecture.',
+  },
+  {
+    id: 'eleventy',
+    name: 'Eleventy (11ty Zero-Client JS)',
+    category: 'framework',
+    description:
+      'Simpler static site generator with zero client-side JavaScript by default, multi-template support (Markdown, Nunjucks, Liquid).',
+    tags: ['11ty', 'eleventy', 'ssg', 'static', 'markdown', 'fast'],
+    npmPackage: '@11ty/eleventy',
+    badge: 'Zero-JS Default',
+    bestFor: 'High-speed publishing, static portfolios, documentation archives, and privacy-first sites',
+    samplePromptSnippet: 'Generate an 11ty static website with Markdown content files and clean semantic styling.',
+  },
+  {
+    id: 'fresh-framework',
+    name: 'Fresh (Deno Zero-Config)',
+    category: 'framework',
+    description: 'Next-gen web framework built for Deno with just-in-time rendering and island hydration on the edge.',
+    tags: ['fresh', 'deno', 'islands', 'edge', 'typescript'],
+    badge: 'Deno Edge',
+    bestFor: 'Edge-native APIs, instant cold starts, and minimal JavaScript footprint',
+    samplePromptSnippet: 'Scaffold Fresh islands with Preact and Tailwind CSS.',
+  },
+  {
+    id: 'waku',
+    name: 'Waku (Minimal React Server Components)',
+    category: 'framework',
+    description:
+      'The minimal React framework with native React Server Components (RSC) support, lightweight bundle size, and fast Vite builds.',
+    tags: ['waku', 'rsc', 'react', 'minimal', 'vite'],
+    npmPackage: 'waku',
+    badge: 'Minimal RSC',
+    bestFor: 'Experimental React 19 apps, lightweight client bundles, and RSC exploration',
+    samplePromptSnippet: 'Build using Waku with React Server Components and nested layout boundaries.',
+  },
+  {
+    id: 'nitro',
+    name: 'Nitro (Universal Web Server)',
+    category: 'framework',
+    description:
+      'Universal, ultra-fast server engine that powers Nuxt and modern edge deployments with zero-config multi-provider targets.',
+    tags: ['nitro', 'server', 'edge', 'h3', 'universal'],
+    npmPackage: 'nitropack',
+    badge: 'Universal Server',
+    bestFor: 'Standalone micro-backends, edge APIs, serverless gateways, and proxy engines',
+    samplePromptSnippet: 'Configure Nitro server routes with lightweight JSON endpoints and caching.',
+  },
+  {
+    id: 'qwik-city',
+    name: 'QwikCity (Resumable Meta-Framework)',
+    category: 'framework',
+    description:
+      'Resumable web framework delivering instant-on web applications with 0ms hydration overhead and streaming chunk execution.',
+    tags: ['qwik', 'qwikcity', 'resumable', 'zero-hydration', 'fast'],
+    npmPackage: '@builder.io/qwik-city',
+    badge: 'Resumable',
+    bestFor: 'E-commerce storefronts, high-traffic portals, and instant global web experiences',
+    samplePromptSnippet: 'Implement using QwikCity with resumable components and route loaders.',
+  },
+  {
+    id: 'alpine-js',
+    name: 'Alpine.js (Lightweight Reactive DOM)',
+    category: 'framework',
+    description:
+      'Rugged, minimal tool for composing behavior directly in markup. 15 attributes, 6 properties, 2 methods — 15x lighter than full SPAs.',
+    tags: ['alpine', 'micro-framework', 'declarative', 'html', 'minimal'],
+    cdnUrl: 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
+    badge: '15KB Micro',
+    bestFor: 'Adding dropdowns, tabs, modals, and reactive state to static HTML without node builds',
+    samplePromptSnippet: 'Enhance static HTML with Alpine.js x-data, x-show, and x-transition attributes.',
+  },
+  {
+    id: 'mdx-studio',
+    name: 'MDX Studio (Interactive Markdown)',
+    category: 'framework',
+    description:
+      'Markdown for the component era. Author interactive React components inside Markdown documents with live code runners.',
+    tags: ['mdx', 'markdown', 'interactive', 'react', 'authoring'],
+    npmPackage: '@mdx-js/react',
+    badge: 'Interactive Docs',
+    bestFor: 'Technical essays, interactive documentation, digital garden notes, and dynamic case studies',
+    samplePromptSnippet: 'Author pages in MDX with embedded live React interactive calculators and charts.',
+  },
 ];
 
 /*
@@ -829,6 +947,97 @@ export const UI_LIBRARIES: CatalogItem[] = [
       'Modern container query utilities for responsive components that adapt to their container width instead of the viewport.',
     tags: ['container-queries', 'modern-css', 'responsive'],
     npmPackage: '@tailwindcss/container-queries',
+  },
+  {
+    id: 'origin-ui',
+    name: 'Origin UI (Tailwind v4 Components)',
+    category: 'ui-library',
+    description:
+      'Extensive collection of copy-paste components built with Tailwind CSS v4, Lucide icons, and Radix primitives.',
+    tags: ['tailwind-v4', 'origin-ui', 'radix', 'lucide', 'accessible'],
+    badge: 'Tailwind v4 Ready',
+    bestFor: 'Inputs, selects, badges, buttons, sliders, and navigation bars',
+    samplePromptSnippet: 'Use Origin UI component patterns with Tailwind v4 CSS variables and micro-animations.',
+  },
+  {
+    id: 'syntax-ui',
+    name: 'Syntax UI (Animated Micro-Components)',
+    category: 'ui-library',
+    description: 'Handcrafted animated UI components with customizable physics, spring feedback, and glowing states.',
+    tags: ['syntax-ui', 'spring-physics', 'animated', 'micro-interactions'],
+    badge: 'Micro-Interactions',
+    bestFor: 'High-converting CTA buttons, interactive pricing tables, and dynamic card hover states',
+    samplePromptSnippet: 'Integrate Syntax UI magnetic buttons and animated expandable card components.',
+  },
+  {
+    id: 'hover-dev',
+    name: 'Hover.dev (Creative Interactive Kits)',
+    category: 'ui-library',
+    description:
+      'Specialized interactive components including 3D tilt cards, water ripple buttons, animated navbars, and interactive bento grids.',
+    tags: ['hover-dev', '3d-tilt', 'creative', 'framer-motion', 'bento'],
+    badge: 'Awwwards Style',
+    bestFor: 'Interactive portfolios, creative design agency homepages, and Web3 hero sections',
+    samplePromptSnippet: 'Employ Hover.dev style magnetic cursor tilt cards and glowing tabs.',
+  },
+  {
+    id: 'indie-ui',
+    name: 'Indie UI (SaaS Launch Primitives)',
+    category: 'ui-library',
+    description:
+      'Production-ready UI library created for solo developers, featuring testemonial walls, feature comparison grids, and pricing tiers.',
+    tags: ['indie-ui', 'saas', 'pricing', 'testimonials', 'launch'],
+    badge: 'Indie Hacker',
+    bestFor: 'SaaS launch landing pages, product waitlists, and revenue dashboards',
+    samplePromptSnippet: 'Build a high-converting landing page with Indie UI pricing cards and social proof carousels.',
+  },
+  {
+    id: 'kokonut-ui',
+    name: 'Kokonut UI (Bespoke Glassmorphism)',
+    category: 'ui-library',
+    description:
+      'Modern glassmorphic and neo-skeuomorphic UI components with ambient lighting, gradient borders, and crisp typography.',
+    tags: ['kokonut', 'glassmorphism', 'neo-skeuomorphic', 'ambient', 'dark-mode'],
+    badge: 'Dark Glass',
+    bestFor: 'Fintech dashboards, trading platforms, and sovereign crypto vaults',
+    samplePromptSnippet: 'Style components using Kokonut UI glassmorphic cards and glowing metric gauges.',
+  },
+  {
+    id: 'terminal-css',
+    name: 'Terminal CSS (Phosphor Hacker Theme)',
+    category: 'ui-library',
+    description:
+      'Modern and minimal CSS framework with retro terminal styling, monospaced layout, and glowing phosphor accents.',
+    tags: ['terminal', 'retro', 'hacker', 'monospace', 'phosphor'],
+    cdnUrl: 'https://unpkg.com/terminal.css@0.7.4/dist/terminal.min.css',
+    badge: 'Retro Terminal',
+    bestFor: 'Developer tool portals, status monitors, CLI simulators, and hacker wikis',
+    samplePromptSnippet:
+      'Theme the UI with Terminal CSS green phosphor borders, CRT scanlines, and monospaced typography.',
+  },
+  {
+    id: 'halfmoon-css',
+    name: 'Halfmoon CSS (Dashboard First)',
+    category: 'ui-library',
+    description:
+      'Front-end framework with a built-in dark mode and 1,500+ CSS variables, tailored specifically for dashboard and admin panels.',
+    tags: ['halfmoon', 'dashboard', 'dark-mode', 'admin', 'css-vars'],
+    npmPackage: 'halfmoon',
+    badge: 'Dashboard Ready',
+    bestFor: 'Data monitoring dashboards, sovereign command hubs, and settings consoles',
+    samplePromptSnippet: 'Use Halfmoon dark-mode layout containers and modular sidebar docks.',
+  },
+  {
+    id: 'milligram-css',
+    name: 'Milligram (2KB Minimalist CSS)',
+    category: 'ui-library',
+    description:
+      'Minimalist CSS framework providing a clean starting point for modern responsive design in under 2KB gzipped.',
+    tags: ['milligram', 'minimal', '2kb', 'flexbox', 'lightweight'],
+    npmPackage: 'milligram',
+    badge: '2KB Micro',
+    bestFor: 'Ultra-lightweight web apps, embeddable widgets, and low-bandwidth interfaces',
+    samplePromptSnippet: 'Structure grids and form inputs with Milligram minimalist CSS.',
   },
 ];
 
@@ -1449,6 +1658,128 @@ export const ANIMATION_LIBRARIES: CatalogItem[] = [
     tags: ['textarea', 'elastic-input', 'smooth-height'],
     npmPackage: 'autosize',
   },
+  {
+    id: 'ogl-webgl',
+    name: 'OGL (Minimal WebGL Engine)',
+    category: 'animation',
+    description:
+      'Minimal WebGL library designed for developers who want 3D capabilities without the heavyweight footprint of Three.js.',
+    tags: ['ogl', 'webgl', 'minimal-3d', 'performance', 'lightweight'],
+    npmPackage: 'ogl',
+    badge: 'Ultra-Light 3D',
+    bestFor: 'Performant particles, interactive 3D ribbons, mathematical meshes, and low-latency canvas FX',
+    samplePromptSnippet: 'Render animated geometry ribbons using OGL minimal WebGL primitives.',
+  },
+  {
+    id: 'blotter-js',
+    name: 'Blotter.js (Kinetic Liquid Typography)',
+    category: 'animation',
+    description:
+      'Unconventional text-effects library powered by GLSL shaders: liquid distortion, rolling waves, kinetic fly-bys, and slicing.',
+    tags: ['blotter', 'glsl', 'liquid-text', 'typography', 'shader'],
+    cdnUrl: 'https://cdnjs.cloudflare.com/ajax/libs/blotter/0.1.0/blotter.min.js',
+    badge: 'Liquid Typography',
+    bestFor: 'Avant-garde hero titles, fashion magazine headlines, and artistic brand anchors',
+    samplePromptSnippet: 'Animate the main headline with liquid rolling wave distortion inspired by Blotter.js.',
+  },
+  {
+    id: 'vivus-svg',
+    name: 'Vivus.js (SVG Stroke Drawing)',
+    category: 'animation',
+    description:
+      'Zero-dependency JavaScript class that allows you to animate SVGs, giving them the appearance of being drawn in real time.',
+    tags: ['vivus', 'svg', 'stroke-draw', 'blueprint', 'line-art'],
+    npmPackage: 'vivus',
+    badge: 'SVG Live Draw',
+    bestFor: 'Architectural blueprints, signature handwriting, icon line reveals, and technical schematics',
+    samplePromptSnippet: 'Animate technical blueprint diagrams with Vivus SVG stroke path drawing.',
+  },
+  {
+    id: 'atropos-tilt',
+    name: 'Atropos 3D Tilt (Apple TV Parallax)',
+    category: 'animation',
+    description:
+      'Touch-friendly 3D parallax hover effect with multiple depth layers, dynamic specular highlights, and spring return.',
+    tags: ['atropos', '3d-tilt', 'parallax', 'apple-tv', 'specular'],
+    npmPackage: 'atropos',
+    badge: '3D Parallax Tilt',
+    bestFor: 'Hero product cards, luxury showcase tiles, pricing tiers, and founder profile cards',
+    samplePromptSnippet:
+      'Wrap key cards in Atropos 3D tilt with depth-separated background, content, and specular light layers.',
+  },
+  {
+    id: 'swiper-11',
+    name: 'Swiper 11 (Modern Touch Carousel)',
+    category: 'animation',
+    description:
+      'The most modern touch slider with hardware-accelerated transitions, 3D cube, coverflow, cards, and parallax modes.',
+    tags: ['swiper', 'touch', 'slider', 'carousel', '3d-coverflow'],
+    npmPackage: 'swiper',
+    badge: 'Slider Benchmark',
+    bestFor: 'Product showcases, mobile swipe cards, architectural portfolio galleries, and testimonial carousels',
+    samplePromptSnippet: 'Configure Swiper with 3D coverflow effect, touch swipes, and custom gold pagination bullets.',
+  },
+  {
+    id: 'auto-animate',
+    name: 'AutoAnimate (Zero-Config List Transitions)',
+    category: 'animation',
+    description:
+      'Zero-config, drop-in animation tool from FormKit that adds smooth transitions to React/DOM lists with a single ref hook.',
+    tags: ['auto-animate', 'zero-config', 'lists', 'smooth', 'formkit'],
+    npmPackage: '@formkit/auto-animate',
+    badge: 'Zero-Config Ref',
+    bestFor: 'Filtered lists, dynamic task reordering, accordion collapses, and cart quantity additions',
+    samplePromptSnippet:
+      'Animate list additions and reordering smoothly by attaching useAutoAnimate() to the parent container.',
+  },
+  {
+    id: 'barba-pjax',
+    name: 'Barba.js (PJAX Fluid Page Transitions)',
+    category: 'animation',
+    description: 'Fluid, seamless transitions between website pages without browser flashes or reload stutter.',
+    tags: ['barba', 'pjax', 'page-transitions', 'smooth', 'cinema'],
+    npmPackage: '@barba/core',
+    badge: 'Cinema Transitions',
+    bestFor: 'Awwwards-style multi-page editorial sites and seamless agency case study transitions',
+    samplePromptSnippet: 'Implement cinematic cross-fade and aperture wipe page transitions with Barba.js.',
+  },
+  {
+    id: 'howler-audio',
+    name: 'Howler.js (Web Audio Master)',
+    category: 'animation',
+    description:
+      'Audio library for the modern web with multi-channel playback, 3D spatial audio, fallback to HTML5 Audio, and zero lag.',
+    tags: ['howler', 'audio', 'sound-fx', 'spatial', 'web-audio'],
+    npmPackage: 'howler',
+    badge: 'Audio Engine',
+    bestFor: 'Gamified UI sound effects, background ambient soundscapes, and tactile button audio feedback',
+    samplePromptSnippet: 'Trigger tactile micro-click audio feedback on button taps using Howler sound instances.',
+  },
+  {
+    id: 'tone-synth',
+    name: 'Tone.js (Generative Web Audio Synthesizer)',
+    category: 'animation',
+    description:
+      'Interactive music and sound synthesis framework for creating interactive instruments, synths, and generative audio in browser.',
+    tags: ['tone-js', 'synthesizer', 'generative', 'audio', 'chords'],
+    npmPackage: 'tone',
+    badge: 'Generative Audio',
+    bestFor: 'Generative interactive audio, chord chimes on milestone completions, and generative soundscapes',
+    samplePromptSnippet: 'Synthesize warm triad chord chimes dynamically with Tone.js polyphonic synth.',
+  },
+  {
+    id: 'baffle-decrypt',
+    name: 'Baffle.js (Hacker Text Decryption)',
+    category: 'animation',
+    description:
+      'Obfuscate and scramble text elements, dynamically decrypting into plaintext with customizable glyph characters and speed.',
+    tags: ['baffle', 'text-scramble', 'cyberpunk', 'decrypt', 'hacker'],
+    npmPackage: 'baffle',
+    badge: 'Text Decryption',
+    bestFor: 'Cyberpunk headers, sovereign telemetry reveals, terminal headings, and status counters',
+    samplePromptSnippet:
+      'Scramble the hero header on load and reveal with cryptographic character decryption using Baffle.js.',
+  },
 ];
 
 /*
@@ -1837,6 +2168,145 @@ export const COMMODITIES_AND_EFFECTS: CatalogItem[] = [
     tags: ['video', 'showreel', 'modal', 'cinematic'],
     badge: 'Video Standard',
   },
+  {
+    id: 'liquid-cursor-trail',
+    name: 'Fluid Glowing Cursor Trail',
+    category: 'commodity',
+    description:
+      'Interactive mouse-following particle or trailing canvas ribbon with dynamic velocity-based elongation and color fades.',
+    tags: ['cursor', 'trail', 'liquid', 'interactive', 'mouse'],
+    badge: 'Awwwards Commodity',
+    bestFor: 'Creative portfolio homepages, digital experience agencies, and art direction portfolios',
+    samplePromptSnippet: 'Render an interactive canvas cursor trail with spring interpolation and glowing decay.',
+  },
+  {
+    id: 'holographic-foil-shader',
+    name: 'Holographic Iridescent Foil',
+    category: 'commodity',
+    description:
+      'Shifting spectral rainbow shimmer simulating physical holographic security foil on cards, badges, and VIP tiers.',
+    tags: ['holographic', 'foil', 'iridescent', 'vip', 'card'],
+    badge: 'Spectral Shimmer',
+    bestFor: 'VIP member cards, sovereign treasury passes, security badges, and Web3 tokens',
+    samplePromptSnippet: 'Style cards with an iridescent linear gradient that shifts angle based on mouse coordinates.',
+  },
+  {
+    id: 'macos-dock-magnifier',
+    name: 'macOS Floating Dock Magnifier',
+    category: 'commodity',
+    description:
+      'Fluid floating dock navigation bar with cosine/Gaussian scale magnification tracking cursor distance.',
+    tags: ['dock', 'macos', 'magnifier', 'gaussian', 'navigation'],
+    badge: 'macOS Commodity',
+    bestFor: 'Bottom-pinned app toolbars, tool palettes, and sovereign dashboard navigation',
+    samplePromptSnippet:
+      'Implement a bottom floating dock with spring-animated icon magnification on cursor proximity.',
+  },
+  {
+    id: 'sonar-radar-rings',
+    name: 'Sonar Radar Pulse Rings',
+    category: 'commodity',
+    description:
+      'Concentric circular ripple rings expanding outward with ease-out timing and opacity decay denoting real-time scanning.',
+    tags: ['sonar', 'radar', 'telemetry', 'pulse', 'scanner'],
+    badge: 'Real-time Scanner',
+    bestFor: 'Host network monitors, security scanners, status indicators, and live AI agent pulse badges',
+    samplePromptSnippet:
+      'Add multiple expanding concentric ripple rings with CSS animation ping to denote active scanning.',
+  },
+  {
+    id: 'crt-scanline-flicker',
+    name: 'CRT Scanlines & Phosphor Glow',
+    category: 'commodity',
+    description:
+      'Retro CRT television scanline raster lines with subtle vertical roll and phosphor bloom for cyber-retro aesthetics.',
+    tags: ['crt', 'scanlines', 'retro', 'phosphor', 'cyberpunk'],
+    badge: 'Retro CRT',
+    bestFor: 'AGY host terminal screens, retro game portals, and developer telemetry viewers',
+    samplePromptSnippet: 'Layer repeating-linear-gradient scanlines and radial vignette shadow on terminal screens.',
+  },
+  {
+    id: 'split-screen-wipe',
+    name: 'Interactive Before/After Wipe Slider',
+    category: 'commodity',
+    description:
+      'Precision dual-pane comparison slider allowing users to drag a divider line revealing before/after states of code or graphics.',
+    tags: ['before-after', 'slider', 'wipe', 'comparison'],
+    badge: 'Comparison Slider',
+    bestFor: 'Design redesign showcases, code optimization audits, image retouching, and performance metrics',
+    samplePromptSnippet:
+      'Build an accessible touch/mouse before-and-after comparison slider with sharp central dividing bar.',
+  },
+  {
+    id: 'interactive-spotlight-halo',
+    name: 'Interactive Mouse Spotlight Halo',
+    category: 'commodity',
+    description:
+      'Radial luminous glow following cursor coordinates across a dark bento grid, illuminating borders and hidden details.',
+    tags: ['spotlight', 'mouse-follow', 'halo', 'bento', 'border-glow'],
+    badge: 'Bento Commodity',
+    bestFor: 'Multi-card feature grids, developer pricing tables, and sovereign architecture breakdowns',
+    samplePromptSnippet:
+      'Track mouse position on container and update CSS custom properties --mouse-x/--mouse-y for dynamic radial spotlight.',
+  },
+  {
+    id: 'matrix-digital-rain',
+    name: 'Matrix Digital Rain Shader',
+    category: 'commodity',
+    description:
+      'Cascading columns of katakana and cryptographic code characters streaming downward with phosphor green tails on canvas.',
+    tags: ['matrix', 'rain', 'hacker', 'canvas', 'cyberpunk'],
+    badge: 'Cyber Matrix',
+    bestFor: 'Sovereign platform heroes, security auditing tools, and cryptographic key vaults',
+    samplePromptSnippet: 'Render 60fps Matrix digital character rain on background HTML5 canvas.',
+  },
+  {
+    id: 'glitch-text-decoder',
+    name: 'Glitch Text Cryptographic Decoder',
+    category: 'commodity',
+    description:
+      'Dynamic text component that rapidly cycles random alphanumeric characters before locking into place letter-by-letter.',
+    tags: ['glitch', 'decoder', 'telemetry', 'hacker', 'text'],
+    badge: 'Cryptographic Reveal',
+    bestFor: 'Hero titles, status indicators, live treasury counters, and AI agent response intros',
+    samplePromptSnippet: 'Animate heading text with rapid random character cycling resolving from left to right.',
+  },
+  {
+    id: 'dual-cash-register-rails',
+    name: 'Dual Cash Register Rails (Stripe + Solana)',
+    category: 'commodity',
+    description:
+      'High-converting twin checkout buttons featuring instant Stripe card checkout and DePay Solana web3 wallet checkout.',
+    tags: ['monetization', 'stripe', 'solana', 'checkout', 'depay', 'sovereign'],
+    badge: 'High-Converting Rails',
+    bestFor: 'Sovereign micro-SaaS, digital product paywalls, founding member lifetime passes',
+    samplePromptSnippet:
+      'Render twin checkout buttons: Credit Card / Apple Pay (Stripe) and Solana USDC / SOL (DePay) with instant client activation.',
+  },
+  {
+    id: 'founding-countdown-gauge',
+    name: 'Urgent Founding Member Countdown Gauge',
+    category: 'commodity',
+    description:
+      'Visual scarcity meter displaying remaining lifetime spots (e.g. 14 / 100 claimed) with real-time progress bar and price anchor.',
+    tags: ['scarcity', 'countdown', 'pricing', 'conversion', 'meter'],
+    badge: 'Conversion Scarcity',
+    bestFor: 'Early access banners, founding member pricing sections, and launch waitlists',
+    samplePromptSnippet:
+      'Feature an urgent founding member badge showing strikethrough regular price ($79) vs $19 founding rate with 14 spots left.',
+  },
+  {
+    id: 'frosted-paywall-gate',
+    name: 'Frosted Glass Output Paywall Gate',
+    category: 'commodity',
+    description:
+      'Resulting advanced code, diagrams, or export outputs blurred with backdrop-filter: blur(8px) and centered glowing lock CTA.',
+    tags: ['paywall', 'frosted-glass', 'blur', 'gate', 'conversion'],
+    badge: 'Paywall Gate',
+    bestFor: 'Freemium dev tools, code generators, resume builders, and premium analytics',
+    samplePromptSnippet:
+      'Lock resulting advanced code output behind a frosted glass blur overlay with 1-click license unlock and checkout triggers.',
+  },
 ];
 
 /*
@@ -2150,6 +2620,80 @@ export const TYPOGRAPHY_PAIRINGS: CatalogItem[] = [
     description: 'Punchy athletic brand pairing. Chunky bold athletic display with dependable neutral body.',
     tags: ['tanker', 'general-sans', 'punchy', 'athletic'],
   },
+  {
+    id: 'bricolage-geist',
+    name: 'Bricolage Grotesque + Geist',
+    category: 'typography',
+    description:
+      'Quirky expressive grotesque paired with Vercel Geist technical sans. Striking balance of personality and engineering rigor.',
+    tags: ['bricolage', 'geist', 'technical', 'developer', 'grotesque'],
+    badge: 'Developer Rigor',
+    bestFor: 'Developer tool portals, open-source documentation, technical newsletters, and CLI homepages',
+    samplePromptSnippet: 'Pair Bricolage Grotesque display headings with Geist and Geist Mono for code blocks.',
+  },
+  {
+    id: 'outfit-urbanist',
+    name: 'Outfit + Urbanist',
+    category: 'typography',
+    description:
+      'Geometric luxury sans-serifs engineered with generous apertures, tall x-heights, and immaculate optical weights.',
+    tags: ['outfit', 'urbanist', 'geometric', 'clean', 'modern'],
+    badge: 'Geometric Modern',
+    bestFor: 'Fintech portals, consumer mobile apps, SaaS marketing sites, and digital banking',
+    samplePromptSnippet: 'Use Outfit for modern geometric headlines and Urbanist for crisp readable interfaces.',
+  },
+  {
+    id: 'space-mono-dm-sans',
+    name: 'Space Mono + DM Sans',
+    category: 'typography',
+    description: 'Robotic technical monospaced headlines paired with friendly, highly-legible geometric body copy.',
+    tags: ['space-mono', 'dm-sans', 'monospace', 'telemetry', 'modern'],
+    badge: 'Sovereign Telemetry',
+    bestFor: 'Crypto protocols, blockchain explorers, server telemetry dashboards, and security audits',
+    samplePromptSnippet: 'Style telemetry headers in Space Mono paired with DM Sans for readable documentation.',
+  },
+  {
+    id: 'cinzel-lato',
+    name: 'Cinzel + Lato',
+    category: 'typography',
+    description: 'Classical Roman inscriptional proportions paired with warm, balanced humanist sans-serif body copy.',
+    tags: ['cinzel', 'lato', 'roman', 'classical', 'monumental'],
+    badge: 'Classical Roman',
+    bestFor: 'Law firms, estate planning, luxury jewelry, high-end private equity, and heritage brands',
+    samplePromptSnippet: 'Set monumental headers in Cinzel with generous letter-spacing, body text in Lato.',
+  },
+  {
+    id: 'playfair-satoshi',
+    name: 'Playfair Display + Satoshi',
+    category: 'typography',
+    description:
+      'High-contrast transitional serif paired with crisp modern modernist sans. The gold standard for modern luxury and haute horlogerie.',
+    tags: ['playfair', 'satoshi', 'high-fashion', 'luxury', 'editorial'],
+    badge: 'Haute Horlogerie',
+    bestFor: 'Exotic watchmakers, luxury fragrance, bespoke tailoring, and Michelin star restaurants',
+    samplePromptSnippet: 'Combine italic Playfair Display headings with crisp geometric Satoshi body copy.',
+  },
+  {
+    id: 'uncut-jetbrains',
+    name: 'Uncut Sans + JetBrains Mono',
+    category: 'typography',
+    description:
+      'Underground indie-hacker pairing combining raw unpolished sans with the worlds premier developer monospace.',
+    tags: ['uncut-sans', 'jetbrains-mono', 'indie-hacker', 'underground', 'code'],
+    badge: 'Indie Hacker',
+    bestFor: 'Micro-SaaS tools, hacker newsletters, sovereign repositories, and experimental tech labs',
+    samplePromptSnippet: 'Use Uncut Sans for raw display headlines and JetBrains Mono for telemetry metrics.',
+  },
+  {
+    id: 'archivo-inter',
+    name: 'Archivo Black + Inter',
+    category: 'typography',
+    description: 'Heavyweight brutalist punch paired with the internet standard for interface legibility.',
+    tags: ['archivo-black', 'inter', 'brutalist', 'impact', 'streetwear'],
+    badge: 'Brutalist Impact',
+    bestFor: 'Streetwear brands, music festival portals, aggressive marketing campaigns, and fitness clubs',
+    samplePromptSnippet: 'Use Archivo Black in all-caps for massive impact hero text, Inter for content blocks.',
+  },
 ];
 
 /*
@@ -2444,6 +2988,98 @@ export const COLOR_PALETTES: CatalogItem[] = [
     category: 'palette',
     description: 'Bioluminescent deep-sea cyan (#0284C7, #06B6D4) on pitch ocean trench black (#031326).',
     tags: ['ocean', 'abyssal', 'bioluminescent'],
+  },
+  {
+    id: 'solana-emerald-cyber',
+    name: 'Cyber Emerald Solana',
+    category: 'palette',
+    description: 'Electric Solana emerald (#10B981) and bioluminescent cyan (#06B6D4) on deep space navy (#0A0F1D).',
+    tags: ['solana', 'emerald', 'crypto', 'web3', 'cyan'],
+    badge: 'Solana Web3',
+  },
+  {
+    id: 'tokyo-night-city',
+    name: 'Tokyo Night Cyberpunk',
+    category: 'palette',
+    description:
+      'Moody indigo (#7AA2F7) and electric violet (#BB9AF7) against deep midnight Tokyo cityscape (#1A1B26).',
+    tags: ['tokyo-night', 'cyberpunk', 'indigo', 'violet', 'neon'],
+    badge: 'Developer Favorite',
+  },
+  {
+    id: 'nord-frost-arctic',
+    name: 'Nord Frost Arctic',
+    category: 'palette',
+    description: 'Cool glacial blue (#88C0D0) and frost cyan (#81A1C1) anchored on dark polar slate (#2E3440).',
+    tags: ['nord', 'frost', 'arctic', 'slate', 'clean'],
+    badge: 'Nordic Clean',
+  },
+  {
+    id: 'dracula-pro-obsidian',
+    name: 'Dracula Pro Obsidian',
+    category: 'palette',
+    description: 'Luminous vampire purple (#BD93F9) and neon pink (#FF79C6) on pitch gothic charcoal (#282A36).',
+    tags: ['dracula', 'purple', 'neon-pink', 'gothic', 'dark-mode'],
+    badge: 'Gothic Neon',
+  },
+  {
+    id: 'catppuccin-mocha-lavender',
+    name: 'Catppuccin Mocha Lavender',
+    category: 'palette',
+    description: 'Soothing pastel lavender (#CBA6F7) and warm sapphire (#74C7EC) on velvety espresso crust (#1E1E2E).',
+    tags: ['catppuccin', 'mocha', 'lavender', 'soothing', 'pastel'],
+    badge: 'Pastel Dark',
+  },
+  {
+    id: 'acid-lime-void',
+    name: 'Acid Lime & Pitch Void',
+    category: 'palette',
+    description: 'Blinding fluorescent acid lime (#A3E635) cutting through an absolute zero black canvas (#050507).',
+    tags: ['acid-lime', 'fluorescent', 'brutalist', 'high-contrast'],
+    badge: 'High Contrast',
+  },
+  {
+    id: 'champagne-carbon',
+    name: 'Champagne & Carbon',
+    category: 'palette',
+    description: 'Silky champagne gold (#F5E6CA) and warm platinum (#E2D9C8) over satin carbon weave (#141416).',
+    tags: ['champagne', 'carbon', 'haute-couture', 'luxury'],
+    badge: 'Quiet Luxury',
+  },
+  {
+    id: 'deep-sea-bioluminescence',
+    name: 'Deep Sea Bioluminescence',
+    category: 'palette',
+    description:
+      'Electric oceanic cyan (#00F0FF) and aquatic teal (#14B8A6) glowing from the midnight abyss (#030712).',
+    tags: ['deep-sea', 'bioluminescent', 'cyan', 'abyss', 'aquatic'],
+    badge: 'Oceanic Glow',
+  },
+  {
+    id: 'rose-pine-sunset',
+    name: 'Rosé Pine Sunset',
+    category: 'palette',
+    description: 'Warm dusty rose (#EBBCBA) and gold pine (#F6C177) over low-contrast purple dusk (#191724).',
+    tags: ['rose-pine', 'sunset', 'warm', 'dusty-rose', 'aesthetic'],
+    badge: 'Warm Aesthetic',
+  },
+  {
+    id: 'bauhaus-primary-trio',
+    name: 'Bauhaus Primary Trio',
+    category: 'palette',
+    description:
+      'Bold cadmium red (#E63946), cobalt blue (#1D3557), and canary yellow (#FFB703) on porcelain canvas (#F8F9FA).',
+    tags: ['bauhaus', 'primary', 'art-school', 'geometric', 'retro'],
+    badge: 'Art School Clean',
+  },
+  {
+    id: 'solar-flare-orange',
+    name: 'Solar Flare Amber',
+    category: 'palette',
+    description:
+      'Incandescent plasma orange (#F97316) and amber ember (#F59E0B) over obsidian asteroid black (#0C0A09).',
+    tags: ['solar-flare', 'orange', 'amber', 'warm', 'energy'],
+    badge: 'High Energy',
   },
 ];
 

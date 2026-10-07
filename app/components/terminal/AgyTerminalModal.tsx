@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '~/components/ui/Button';
 import { Dialog, DialogTitle, DialogDescription, DialogRoot } from '~/components/ui/Dialog';
+import { playTactileClick, playTerminalKeystroke, playSuccessChime } from '~/lib/modules/design-libraries/media-packs';
 
 interface LocalTool {
   name: string;
@@ -21,11 +22,17 @@ interface CommandHistoryEntry {
 export interface AgyTerminalModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onInjectPrompt?: (text: string) => void;
 }
 
-export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onClose }) => {
+type EngineFilter = 'all' | 'agy' | 'hermes' | 'claude' | 'ollama' | 'system';
+
+export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onClose, onInjectPrompt }) => {
   const [command, setCommand] = useState('');
   const [isRunning, setIsRunning] = useState(false);
+  const [activeEngine, setActiveEngine] = useState<EngineFilter>('all');
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [injectedIndex, setInjectedIndex] = useState<number | null>(null);
 
   const [history, setHistory] = useState<CommandHistoryEntry[]>([
     {
@@ -86,6 +93,7 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
       return;
     }
 
+    playTactileClick();
     setIsRunning(true);
     setCurrentStreamOutput('');
     setCommand('');
@@ -159,6 +167,7 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
         },
       ]);
       setCurrentStreamOutput('');
+      playSuccessChime();
     } catch (err: any) {
       setHistory((prev: CommandHistoryEntry[]) => [
         ...prev,
@@ -178,6 +187,8 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    playTerminalKeystroke();
+
     if (e.key === 'Enter') {
       runCommand(command);
     } else if (e.key === 'ArrowUp') {
@@ -199,29 +210,117 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
         setHistoryIndex(-1);
         setCommand('');
       }
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+
+      // Tab Autocomplete
+      const suggestions = [
+        'agy models',
+        'agy agent',
+        'agy mcp list',
+        'hermes model',
+        'claude',
+        'ollama list',
+        'git status',
+      ];
+
+      const match = suggestions.find((s) => s.startsWith(command.toLowerCase()));
+
+      if (match) {
+        setCommand(match);
+      }
+    }
+  };
+
+  const handleCopyOutput = (text: string, idx: number) => {
+    navigator.clipboard.writeText(text);
+    setCopiedIndex(idx);
+    playTactileClick();
+    setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  const handleInjectToChat = async (text: string, idx: number, buildImmediate = false) => {
+    playTactileClick();
+    setInjectedIndex(idx);
+
+    try {
+      await fetch('/api/webgen/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: buildImmediate ? 'prompt_and_build' : 'set_prompt',
+          prompt: text,
+        }),
+      });
+
+      if (onInjectPrompt) {
+        onInjectPrompt(text);
+      }
+
+      playSuccessChime();
+      setTimeout(() => {
+        onClose();
+      }, 300);
+    } catch {
+      // Fallback
+      if (onInjectPrompt) {
+        onInjectPrompt(text);
+        onClose();
+      }
     }
   };
 
   const clearHistory = () => {
+    playTactileClick();
     setHistory([]);
     setCurrentStreamOutput('');
   };
 
-  const presetChips = [
-    { label: 'agy --help', cmd: 'agy --help' },
-    { label: 'agy models', cmd: 'agy models' },
-    { label: 'agy agent', cmd: 'agy agent' },
-    { label: 'agy mcp list', cmd: 'agy mcp list' },
-    { label: 'hermes --help', cmd: 'hermes --help' },
-    { label: 'claude --version', cmd: 'claude --version' },
-    { label: 'ollama list', cmd: 'ollama list' },
-    { label: 'git status', cmd: 'git status' },
-  ];
+  const presetsByEngine: Record<EngineFilter, { label: string; cmd: string }[]> = {
+    all: [
+      { label: 'agy models', cmd: 'agy models' },
+      { label: 'agy agent', cmd: 'agy agent' },
+      { label: 'hermes --help', cmd: 'hermes --help' },
+      { label: 'hermes model', cmd: 'hermes model' },
+      { label: 'claude --version', cmd: 'claude --version' },
+      { label: 'ollama list', cmd: 'ollama list' },
+      { label: 'git status', cmd: 'git status' },
+    ],
+    agy: [
+      { label: 'agy --help', cmd: 'agy --help' },
+      { label: 'agy models', cmd: 'agy models' },
+      { label: 'agy agent', cmd: 'agy agent' },
+      { label: 'agy mcp list', cmd: 'agy mcp list' },
+      { label: 'agy changelog', cmd: 'agy changelog' },
+    ],
+    hermes: [
+      { label: 'hermes --help', cmd: 'hermes --help' },
+      { label: 'hermes model', cmd: 'hermes model' },
+      { label: 'hermes moa', cmd: 'hermes moa' },
+      { label: 'hermes --version', cmd: 'hermes --version' },
+    ],
+    claude: [
+      { label: 'claude --version', cmd: 'claude --version' },
+      { label: 'claude config list', cmd: 'claude config list' },
+      { label: 'claude mcp list', cmd: 'claude mcp list' },
+    ],
+    ollama: [
+      { label: 'ollama list', cmd: 'ollama list' },
+      { label: 'ollama ps', cmd: 'ollama ps' },
+      { label: 'ollama --version', cmd: 'ollama --version' },
+    ],
+    system: [
+      { label: 'git status', cmd: 'git status' },
+      { label: 'git log -n 5 --oneline', cmd: 'git log -n 5 --oneline' },
+      { label: 'uname -a', cmd: 'uname -a' },
+      { label: 'df -h', cmd: 'df -h' },
+    ],
+  };
 
   return (
     <DialogRoot open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <Dialog className="!w-[96vw] !max-w-5xl !rounded-2xl border-amber-500/20 bg-[#08080B] text-bolt-elements-textPrimary">
-        <div className="p-4 sm:p-6 w-full max-h-[90vh] flex flex-col gap-4 overflow-hidden font-mono">
+        <div className="p-4 sm:p-6 w-full max-h-[90vh] flex flex-col gap-3 sm:gap-4 overflow-hidden font-mono">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3 font-sans">
             <div>
@@ -242,7 +341,7 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
             </div>
 
             {/* Local Engine Status Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto text-xs font-mono">
+            <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-mono">
               {tools.slice(0, 4).map((t: LocalTool) => (
                 <div
                   key={t.command}
@@ -260,12 +359,41 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
             </div>
           </div>
 
+          {/* Engine Selector Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto border-b border-white/10 pb-2 text-xs font-sans">
+            <span className="text-gray-500 whitespace-nowrap mr-1">Engines:</span>
+            {[
+              { id: 'all', label: 'All Engines', icon: 'i-ph:command' },
+              { id: 'agy', label: 'AGY CLI', icon: 'i-ph:lightning' },
+              { id: 'hermes', label: 'Hermes Agent', icon: 'i-ph:crown' },
+              { id: 'claude', label: 'Claude Code', icon: 'i-ph:brain' },
+              { id: 'ollama', label: 'Ollama Local', icon: 'i-ph:cpu' },
+              { id: 'system', label: 'Git & OS', icon: 'i-ph:gear' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  playTactileClick();
+                  setActiveEngine(tab.id as EngineFilter);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 whitespace-nowrap ${
+                  activeEngine === tab.id
+                    ? 'bg-amber-500 text-black font-semibold shadow-sm'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white'
+                }`}
+              >
+                <span className={tab.icon} />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
           {/* Quick Command Chips */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-mono custom-scrollbar">
             <span className="text-gray-500 whitespace-nowrap flex items-center gap-1 font-sans">
-              <span className="i-ph:lightning text-amber-400" /> Presets:
+              <span className="i-ph:play-circle text-amber-400" /> Presets:
             </span>
-            {presetChips.map((chip) => (
+            {presetsByEngine[activeEngine].map((chip) => (
               <button
                 key={chip.cmd}
                 disabled={isRunning}
@@ -280,20 +408,50 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
           {/* Terminal Console Viewport */}
           <div className="flex-1 min-h-[350px] max-h-[50vh] bg-[#050508] border border-white/10 rounded-xl p-4 overflow-y-auto custom-scrollbar font-mono text-xs sm:text-sm text-gray-300 space-y-4 shadow-inner">
             {history.map((entry: CommandHistoryEntry, idx: number) => (
-              <div key={idx} className="space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-400/90 font-semibold select-none">
+              <div key={idx} className="space-y-2 p-2.5 rounded-lg bg-white/[0.02] border border-white/5">
+                <div className="flex items-center gap-2 text-amber-400/90 font-semibold select-none flex-wrap">
                   <span className="text-emerald-400">zoth@zothos</span>
                   <span className="text-gray-500">:</span>
                   <span className="text-blue-400">{cwd.split('/').slice(-2).join('/')}</span>
                   <span className="text-gray-500">$</span>
-                  <span className="text-white">{entry.command}</span>
+                  <span className="text-white font-mono">{entry.command}</span>
                   <span className="ml-auto text-[10px] text-gray-600 font-normal">
                     {entry.durationMs}ms {entry.exitCode !== 0 && `(exit ${entry.exitCode})`}
                   </span>
                 </div>
-                <pre className="whitespace-pre-wrap font-mono text-xs text-gray-300 pl-4 border-l-2 border-white/10 leading-relaxed overflow-x-auto">
+
+                <pre className="whitespace-pre-wrap font-mono text-xs text-gray-300 pl-3 border-l-2 border-white/10 leading-relaxed overflow-x-auto">
                   {entry.output}
                 </pre>
+
+                {/* Entry Action Bar */}
+                <div className="flex items-center gap-2 pt-1 border-t border-white/5 font-sans text-xs">
+                  <button
+                    onClick={() => handleCopyOutput(entry.output, idx)}
+                    className="px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all flex items-center gap-1 text-[11px]"
+                  >
+                    <span className={copiedIndex === idx ? 'i-ph:check text-emerald-400' : 'i-ph:copy'} />
+                    <span>{copiedIndex === idx ? 'Copied' : 'Copy'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleInjectToChat(entry.output, idx, false)}
+                    className="px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-amber-200 border border-amber-500/30 transition-all flex items-center gap-1 text-[11px]"
+                    title="Send this terminal output directly into the WebGen chat prompt"
+                  >
+                    <span className="i-ph:chat-text text-amber-400" />
+                    <span>{injectedIndex === idx ? 'Injected to Prompt!' : 'Send to WebGen Prompt'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleInjectToChat(entry.output, idx, true)}
+                    className="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 hover:text-emerald-200 border border-emerald-500/30 transition-all flex items-center gap-1 text-[11px]"
+                    title="Send output and immediately start website generation"
+                  >
+                    <span className="i-ph:sparkle text-emerald-400" />
+                    <span>Prompt & Build</span>
+                  </button>
+                </div>
               </div>
             ))}
 
@@ -321,7 +479,7 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
 
           {/* Command Prompt Input Bar */}
           <div className="flex items-center gap-2 bg-[#0c0c12] p-2 rounded-xl border border-white/10">
-            <span className="text-amber-400 font-semibold text-xs sm:text-sm pl-2 select-none">agy$</span>
+            <span className="text-amber-400 font-semibold text-xs sm:text-sm pl-2 select-none">zothos$</span>
             <input
               ref={inputRef}
               type="text"
@@ -329,7 +487,7 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
               disabled={isRunning}
               onChange={(e) => setCommand(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type any agy, hermes, claude, or bash command (e.g. agy models)..."
+              placeholder="Type any agy, hermes, claude, ollama, or bash command (Tab to autocomplete)..."
               className="flex-1 bg-transparent border-none text-xs sm:text-sm text-white placeholder:text-gray-600 focus:outline-none font-mono"
             />
             {command && (
@@ -362,7 +520,7 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
           {/* Terminal Footer Controls */}
           <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-500 font-sans">
             <div className="flex items-center gap-3">
-              <span>Use ↑ / ↓ arrow keys for command history</span>
+              <span>↑ / ↓ history • Tab autocomplete</span>
               <span>•</span>
               <button onClick={clearHistory} className="hover:text-gray-300 flex items-center gap-1 transition-colors">
                 <span className="i-ph:trash text-xs" /> Clear Terminal
