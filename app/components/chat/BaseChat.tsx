@@ -25,6 +25,8 @@ import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButto
 import DeployChatAlert from '~/components/deploy/DeployAlert';
 import { ProPaywallModal } from '~/components/monetization/ProPaywallModal';
 import { SalesFunnelBanner } from '~/components/monetization/SalesFunnelBanner';
+import { KineticHeroCanvas } from '~/components/motion/KineticHeroCanvas';
+import { MotionShowreelModal } from '~/components/motion/MotionShowreelModal';
 import { Menu } from '~/components/sidebar/Menu.client';
 import type { ElementInfo } from '~/components/workbench/Inspector';
 import { Workbench } from '~/components/workbench/Workbench.client';
@@ -151,6 +153,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     const expoUrl = useStore(expoUrlAtom);
     const [qrModalOpen, setQrModalOpen] = useState(false);
+    const [showreelOpen, setShowreelOpen] = useState(false);
 
     useWebGenMcpBridge({
       textareaRef,
@@ -366,13 +369,27 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow lg:min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
               <>
-                <div id="intro" className="mt-3 sm:mt-5 max-w-2xl mx-auto text-center px-4 lg:px-0">
+                <div className="aurora-bg-container">
+                  <div className="aurora-glow-gold" />
+                  <div className="aurora-glow-cyan" />
+                  <div className="aurora-glow-purple" />
+                </div>
+                <ClientOnly>{() => <KineticHeroCanvas />}</ClientOnly>
+                <div id="intro" className="relative z-10 mt-3 sm:mt-5 max-w-2xl mx-auto text-center px-4 lg:px-0">
                   <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] text-[11px] font-mono font-medium uppercase tracking-wider mb-2.5 animate-fade-in shadow-[0_0_15px_rgba(212,175,55,0.15)]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-                    Zoth WebGen Foundry • Autonomous Architecture
+                    <span>Zoth WebGen Foundry • Autonomous Architecture</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowreelOpen(true)}
+                      className="inline-flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full border border-purple-500/40 bg-purple-500/20 text-purple-300 hover:text-white hover:bg-purple-500/30 text-[9px] font-bold transition-all cursor-pointer"
+                      title="View 15s Claude Motion Graphics Showreel Prompt & Simulator"
+                    >
+                      <span>▶ 15s Showreel</span>
+                    </button>
                   </div>
-                  <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-bolt-elements-textPrimary mb-2 animate-fade-in">
-                    Where Sovereign Software Begins
+                  <h1 className="font-syne text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-bolt-elements-textPrimary mb-2 animate-fade-in">
+                    Where <span className="shimmer-text-gold">Sovereign Software</span> Begins
                   </h1>
                   <p className="text-xs sm:text-sm lg:text-base mb-2 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
                     Architect, generate, and run production-grade web applications in real-time.
@@ -527,7 +544,18 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
 
                     handleSendMessage?.(event, messageInput);
                   })}
-                {!chatStarted && <StarterTemplates />}
+                {!chatStarted && (
+                  <StarterTemplates
+                    onSelectPrompt={(selectedPrompt) => {
+                      if (isStreaming) {
+                        handleStop?.();
+                        return;
+                      }
+
+                      handleSendMessage?.({} as any, selectedPrompt);
+                    }}
+                  />
+                )}
               </div>
               {!chatStarted && (
                 <footer className="mt-8 mb-4 text-center text-xs text-bolt-elements-textTertiary flex flex-col items-center justify-center gap-2">
@@ -577,6 +605,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           </ClientOnly>
         </div>
         <ClientOnly>{() => <ProPaywallModal />}</ClientOnly>
+        <ClientOnly>
+          {() => <MotionShowreelModal isOpen={showreelOpen} onClose={() => setShowreelOpen(false)} />}
+        </ClientOnly>
       </div>
     );
 
