@@ -7,6 +7,7 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import type { JSONValue, Message } from 'ai';
 import Cookies from 'js-cookie';
 import React, { type RefCallback, useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { ClientOnly } from 'remix-utils/client-only';
 import { getApiKeysFromCookies } from './APIKeyManager';
 import styles from './BaseChat.module.scss';
@@ -17,6 +18,7 @@ import LlmErrorAlert from './LLMApiAlert';
 import { Messages } from './Messages.client';
 import ProgressCompilation from './ProgressCompilation';
 import StarterTemplates from './StarterTemplates';
+import { ZothBentoFeatures } from './ZothBentoFeatures';
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import { SupabaseChatAlert } from '~/components/chat/SupabaseAlert';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
@@ -27,6 +29,7 @@ import { Menu } from '~/components/sidebar/Menu.client';
 import type { ElementInfo } from '~/components/workbench/Inspector';
 import { Workbench } from '~/components/workbench/Workbench.client';
 import { StickToBottom, useStickToBottomContext } from '~/lib/hooks';
+import { useWebGenMcpBridge } from '~/lib/hooks/useWebGenMcpBridge';
 import type { ModelInfo } from '~/lib/modules/llm/types';
 import { expoUrlAtom } from '~/lib/stores/qrCodeStore';
 import type { ActionAlert, SupabaseAlert, DeployAlert, LlmErrorAlertType } from '~/types/actions';
@@ -148,6 +151,15 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     const expoUrl = useStore(expoUrlAtom);
     const [qrModalOpen, setQrModalOpen] = useState(false);
+
+    useWebGenMcpBridge({
+      textareaRef,
+      sendMessage,
+      setModel,
+      setProvider,
+      providerList,
+      isStreaming,
+    });
 
     useEffect(() => {
       if (expoUrl) {
@@ -354,19 +366,37 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow lg:min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
               <>
-                <div id="intro" className="mt-[14vh] max-w-2xl mx-auto text-center px-4 lg:px-0">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-mono font-medium uppercase tracking-wider mb-4 animate-fade-in shadow-[0_0_15px_rgba(212,175,55,0.15)]">
+                <div id="intro" className="mt-3 sm:mt-5 max-w-2xl mx-auto text-center px-4 lg:px-0">
+                  <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] text-[11px] font-mono font-medium uppercase tracking-wider mb-2.5 animate-fade-in shadow-[0_0_15px_rgba(212,175,55,0.15)]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
                     Zoth WebGen Foundry • Autonomous Architecture
                   </div>
-                  <h1 className="text-3xl lg:text-6xl font-extrabold tracking-tight text-bolt-elements-textPrimary mb-4 animate-fade-in">
+                  <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-bolt-elements-textPrimary mb-2 animate-fade-in">
                     Where Sovereign Software Begins
                   </h1>
-                  <p className="text-md lg:text-xl mb-3 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
+                  <p className="text-xs sm:text-sm lg:text-base mb-2 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
                     Architect, generate, and run production-grade web applications in real-time.
                   </p>
                 </div>
                 <ClientOnly>{() => <SalesFunnelBanner />}</ClientOnly>
+                <ClientOnly>
+                  {() => (
+                    <ZothBentoFeatures
+                      onSelectLocalEngine={() => {
+                        const localProv = (providerList || PROVIDER_LIST)?.find((p: any) => p.name === 'ZothLocal');
+
+                        if (localProv) {
+                          setProvider?.(localProv as any);
+                          setModel?.('agy-engine');
+                          toast.success('⚡ ZothOS Local Engine Active: Google Antigravity (AGY)');
+                        }
+                      }}
+                      onSelectStarter={() => {
+                        textareaRef?.current?.focus();
+                      }}
+                    />
+                  )}
+                </ClientOnly>
               </>
             )}
             <StickToBottom

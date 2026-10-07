@@ -20,6 +20,7 @@ import PerplexityProvider from './providers/perplexity';
 import TogetherProvider from './providers/together';
 import XAIProvider from './providers/xai';
 import ZaiProvider from './providers/z-ai';
+import ZothLocalProvider from './providers/zoth-local';
 
 export {
   AnthropicProvider,
@@ -44,4 +45,5 @@ export {
   AmazonBedrockProvider,
   GithubProvider,
   ZaiProvider,
+  ZothLocalProvider,
 };

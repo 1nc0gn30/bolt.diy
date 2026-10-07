@@ -36,6 +36,20 @@ export function Header() {
         </a>
       </div>
 
+      {!chat.started && (
+        <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-[#0D0D12]/90 border border-[#D4AF37]/30 text-xs font-mono text-white/80 shadow-[0_0_12px_rgba(212,175,55,0.1)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+          <span className="font-bold text-[#D4AF37]">ZOTHOS ENGINES</span>
+          <span className="text-white/30">•</span>
+          <span className="text-white/70">AGY · Hermes · Ollama</span>
+          <span className="text-white/30">•</span>
+          <span className="text-emerald-400 font-semibold flex items-center gap-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            MCP Live
+          </span>
+        </div>
+      )}
+
       {chat.started && (
         <span className="flex-1 px-4 truncate text-center text-bolt-elements-textPrimary">
           <ClientOnly>{() => <ChatDescription />}</ClientOnly>

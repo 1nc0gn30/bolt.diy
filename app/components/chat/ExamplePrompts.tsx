@@ -25,9 +25,10 @@ export function ExamplePrompts(sendMessage?: { (event: React.UIEvent, messageInp
               onClick={(event) => {
                 sendMessage?.(event, examplePrompt.text);
               }}
-              className="border border-bolt-elements-borderColor rounded-full bg-gray-50 hover:bg-gray-100 dark:bg-gray-950 dark:hover:bg-gray-900 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary px-3 py-1 text-xs transition-theme"
+              className="group border border-bolt-elements-borderColor/70 hover:border-[#D4AF37]/60 rounded-full bg-[#08080B]/60 hover:bg-[#0E0E14] text-bolt-elements-textSecondary hover:text-white px-3.5 py-1.5 text-xs transition-all duration-200 hover:shadow-[0_0_18px_rgba(212,175,55,0.2)] flex items-center gap-1.5"
             >
-              {examplePrompt.text}
+              <span>{examplePrompt.text}</span>
+              <div className="i-ph:arrow-up-right text-[10px] text-[#D4AF37] opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
             </button>
           );
         })}

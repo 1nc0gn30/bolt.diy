@@ -10,8 +10,8 @@ export const SalesFunnelBanner: React.FC = () => {
   }
 
   return (
-    <div className="relative mx-auto my-4 w-full max-w-4xl px-4 animate-fade-in">
-      <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-r from-[#121217]/90 via-[#0e0e12]/95 to-[#161510]/90 p-5 shadow-[0_4px_30px_rgba(212,175,55,0.08)] backdrop-blur-xl transition-all duration-300 hover:border-[#D4AF37]/50">
+    <div className="relative mx-auto my-2.5 w-full max-w-4xl px-4 animate-fade-in">
+      <div className="relative overflow-hidden rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-r from-[#121217]/90 via-[#0e0e12]/95 to-[#161510]/90 p-4 md:p-4.5 shadow-[0_4px_30px_rgba(212,175,55,0.08)] backdrop-blur-xl transition-all duration-300 hover:border-[#D4AF37]/50">
         {/* Ambient Top Glow Beam */}
         <div className="pointer-events-none absolute -top-12 left-1/2 h-24 w-96 -translate-x-1/2 rounded-full bg-[#D4AF37]/15 blur-2xl" />
 
