@@ -4,6 +4,101 @@ import type { ModelInfo } from '~/lib/modules/llm/types';
 import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
 import type { ProviderInfo } from '~/types/model';
 import { classNames } from '~/utils/classNames';
+import { PROVIDER_LIST } from '~/utils/constants';
+
+export interface EnginePreset {
+  id: string;
+  name: string;
+  badge: string;
+  badgeType: 'local' | 'frontier' | 'reasoning' | 'fast';
+  icon: string;
+  providerName: string;
+  modelName: string;
+  description: string;
+}
+
+export const ENGINE_PRESETS: EnginePreset[] = [
+  {
+    id: 'agy-engine',
+    name: 'AGY Agent',
+    badge: 'LOCAL CLI',
+    badgeType: 'local',
+    icon: '⚡',
+    providerName: 'ZothLocal',
+    modelName: 'agy-engine',
+    description: 'Autonomous local CLI coding agent (Google Antigravity)',
+  },
+  {
+    id: 'hermes-agent',
+    name: 'Hermes 3',
+    badge: 'LOCAL CLI',
+    badgeType: 'local',
+    icon: '👑',
+    providerName: 'ZothLocal',
+    modelName: 'hermes-agent',
+    description: 'Nous Research Hermes 3 autonomous local agent',
+  },
+  {
+    id: 'claude-cli',
+    name: 'Claude Code',
+    badge: 'LOCAL CLI',
+    badgeType: 'local',
+    icon: '🧠',
+    providerName: 'ZothLocal',
+    modelName: 'claude-cli',
+    description: 'Anthropic Claude Code CLI agent',
+  },
+  {
+    id: 'qwen-coder',
+    name: 'Qwen Coder',
+    badge: 'LOCAL OLLAMA',
+    badgeType: 'local',
+    icon: '🛠️',
+    providerName: 'ZothLocal',
+    modelName: 'qwen2.5-coder:1.5b',
+    description: 'Ultra-fast local coding model via Ollama',
+  },
+  {
+    id: 'claude-3-7-sonnet',
+    name: 'Claude 3.7',
+    badge: 'FRONTIER',
+    badgeType: 'frontier',
+    icon: '💎',
+    providerName: 'Anthropic',
+    modelName: 'claude-3-7-sonnet-20250219',
+    description: 'Anthropic hybrid reasoning & coding frontier model',
+  },
+  {
+    id: 'o3-mini',
+    name: 'o3-mini',
+    badge: 'REASONING',
+    badgeType: 'reasoning',
+    icon: '⚡',
+    providerName: 'OpenAI',
+    modelName: 'o3-mini',
+    description: 'OpenAI high-speed reasoning model',
+  },
+  {
+    id: 'deepseek-r1',
+    name: 'DeepSeek R1',
+    badge: 'REASONING',
+    badgeType: 'reasoning',
+    icon: '🚀',
+    providerName: 'Deepseek',
+    modelName: 'deepseek-reasoner',
+    description: 'DeepSeek frontier reasoning model',
+  },
+  {
+    id: 'gemini-2-5-flash',
+    name: 'Gemini 2.5',
+    badge: '1M CONTEXT',
+    badgeType: 'fast',
+    icon: '🌟',
+    providerName: 'Google',
+    modelName: 'gemini-2.5-flash',
+    description: 'Google next-gen 1M token workhorse for rapid web development',
+  },
+];
 
 // Fuzzy search utilities
 const levenshteinDistance = (str1: string, str2: string): number => {
@@ -430,6 +525,36 @@ export const ModelSelector = ({
     }
   }, [providerList, provider, setProvider, modelList, setModel]);
 
+  const isCurrentPreset = useMemo(() => {
+    return ENGINE_PRESETS.some((p) => p.providerName === provider?.name && p.modelName === model);
+  }, [provider?.name, model]);
+
+  const activePreset = useMemo(() => {
+    return ENGINE_PRESETS.find((p) => p.providerName === provider?.name && p.modelName === model);
+  }, [provider?.name, model]);
+
+  const [showDetailedSelector, setShowDetailedSelector] = useState(false);
+  const effectiveShowDetailed = showDetailedSelector || !isCurrentPreset;
+
+  const handleSelectPreset = useCallback(
+    (preset: EnginePreset) => {
+      let targetProvider = providerList.find((p) => p.name === preset.providerName);
+
+      if (!targetProvider) {
+        targetProvider = (PROVIDER_LIST as ProviderInfo[]).find((p) => p.name === preset.providerName);
+      }
+
+      if (targetProvider && setProvider) {
+        setProvider(targetProvider);
+      }
+
+      if (setModel) {
+        setModel(preset.modelName);
+      }
+    },
+    [providerList, setProvider, setModel],
+  );
+
   if (providerList.length === 0) {
     return (
       <div className="mb-2 p-4 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-prompt-background text-bolt-elements-textPrimary">
@@ -442,431 +567,519 @@ export const ModelSelector = ({
   }
 
   return (
-    <div className="flex gap-2 flex-col sm:flex-row">
-      {/* Provider Combobox */}
-      <div className="relative flex w-full" onKeyDown={handleProviderKeyDown} ref={providerDropdownRef}>
-        <div
-          className={classNames(
-            'w-full p-2 rounded-lg border border-bolt-elements-borderColor',
-            'bg-bolt-elements-prompt-background text-bolt-elements-textPrimary',
-            'focus-within:outline-none focus-within:ring-2 focus-within:ring-bolt-elements-focus',
-            'transition-all cursor-pointer',
-            isProviderDropdownOpen ? 'ring-2 ring-bolt-elements-focus' : undefined,
-          )}
-          onClick={() => setIsProviderDropdownOpen(!isProviderDropdownOpen)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              setIsProviderDropdownOpen(!isProviderDropdownOpen);
-            }
-          }}
-          role="combobox"
-          aria-expanded={isProviderDropdownOpen}
-          aria-controls="provider-listbox"
-          aria-haspopup="listbox"
-          tabIndex={0}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 truncate">
-              {provider?.name && LOCAL_PROVIDERS.includes(provider.name) && (
+    <div className="flex flex-col gap-2 mb-2">
+      {/* 1-Click Fast Engine Switcher Strip */}
+      <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-bolt-elements-background-depth-2/80 border border-bolt-elements-borderColor shadow-sm backdrop-blur">
+        <div className="flex items-center justify-between text-xs px-1">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+            </span>
+            <span className="font-semibold text-bolt-elements-textPrimary tracking-wide uppercase text-[10px]">
+              AI Engine Presets
+            </span>
+            <span className="text-bolt-elements-textTertiary">•</span>
+            <span className="text-[11px] text-bolt-elements-textSecondary truncate max-w-[180px] sm:max-w-none">
+              Active:{' '}
+              <strong className="text-amber-400 font-mono">
+                {activePreset ? activePreset.name : `${provider?.name || 'Unknown'} / ${model || 'None'}`}
+              </strong>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowDetailedSelector(!showDetailedSelector)}
+            className={classNames(
+              'flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer',
+              effectiveShowDetailed
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
+            )}
+            title="Toggle full provider and model search (540+ models)"
+          >
+            <span className="i-ph:sliders-horizontal text-xs" />
+            <span>{effectiveShowDetailed ? 'Hide Detailed' : 'All 540+ Models'}</span>
+            <span
+              className={classNames(
+                'i-ph:caret-down text-[10px] transition-transform',
+                effectiveShowDetailed ? 'rotate-180' : '',
+              )}
+            />
+          </button>
+        </div>
+
+        {/* Horizontal Pill Strip */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 sm:scrollbar-none [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor">
+          {ENGINE_PRESETS.map((preset) => {
+            const isActive = provider?.name === preset.providerName && model === preset.modelName;
+
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => handleSelectPreset(preset)}
+                title={`${preset.name}: ${preset.description}`}
+                className={classNames(
+                  'group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 cursor-pointer',
+                  isActive
+                    ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/60 shadow-[0_0_12px_rgba(212,175,55,0.25)] ring-1 ring-[#D4AF37]/40'
+                    : 'bg-bolt-elements-prompt-background hover:bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/70 hover:border-bolt-elements-borderColorHover',
+                )}
+              >
+                <span className="text-sm">{preset.icon}</span>
+                <span className="font-semibold">{preset.name}</span>
                 <span
                   className={classNames(
-                    'inline-block w-2 h-2 rounded-full flex-shrink-0',
-                    localProviderStatus[provider.name] === 'connected'
-                      ? 'bg-green-500'
-                      : localProviderStatus[provider.name] === 'disconnected'
-                        ? 'bg-red-400'
-                        : 'bg-bolt-elements-textTertiary',
+                    'text-[9px] px-1 py-0.2 rounded font-mono uppercase tracking-wider',
+                    preset.badgeType === 'local'
+                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      : preset.badgeType === 'reasoning'
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                        : preset.badgeType === 'frontier'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
                   )}
-                  title={
-                    localProviderStatus[provider.name] === 'connected'
-                      ? `${provider.name} is running`
-                      : localProviderStatus[provider.name] === 'disconnected'
-                        ? `${provider.name} is not reachable`
-                        : 'Checking...'
-                  }
-                />
-              )}
-              {provider?.name || 'Select provider'}
-            </div>
-            <div
-              className={classNames(
-                'i-ph:caret-down w-4 h-4 text-bolt-elements-textSecondary opacity-75',
-                isProviderDropdownOpen ? 'rotate-180' : undefined,
-              )}
-            />
-          </div>
+                >
+                  {preset.badge}
+                </span>
+                {isActive && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />}
+              </button>
+            );
+          })}
         </div>
-
-        {isProviderDropdownOpen && (
-          <div
-            className="absolute z-20 w-full mt-1 py-1 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-background-depth-2 shadow-lg"
-            role="listbox"
-            id="provider-listbox"
-          >
-            <div className="px-2 pb-2">
-              <div className="relative">
-                <input
-                  ref={providerSearchInputRef}
-                  type="text"
-                  value={providerSearchQuery}
-                  onChange={(e) => setProviderSearchQuery(e.target.value)}
-                  placeholder="Search providers... (⌘K to clear)"
-                  className={classNames(
-                    'w-full pl-8 pr-8 py-1.5 rounded-md text-sm',
-                    'bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor',
-                    'text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary',
-                    'focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus',
-                    'transition-all',
-                  )}
-                  onClick={(e) => e.stopPropagation()}
-                  role="searchbox"
-                  aria-label="Search providers"
-                />
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
-                  <span className="i-ph:magnifying-glass text-bolt-elements-textTertiary" />
-                </div>
-                {providerSearchQuery && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearProviderSearch();
-                    }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-bolt-elements-background-depth-3 transition-colors"
-                    aria-label="Clear search"
-                  >
-                    <span className="i-ph:x text-bolt-elements-textTertiary text-xs" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div
-              className={classNames(
-                'max-h-60 overflow-y-auto',
-                'sm:scrollbar-none',
-                '[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:h-2',
-                '[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor',
-                '[&::-webkit-scrollbar-thumb]:hover:bg-bolt-elements-borderColorHover',
-                '[&::-webkit-scrollbar-thumb]:rounded-full',
-                '[&::-webkit-scrollbar-track]:bg-bolt-elements-background-depth-2',
-                '[&::-webkit-scrollbar-track]:rounded-full',
-                'sm:[&::-webkit-scrollbar]:w-1.5 sm:[&::-webkit-scrollbar]:h-1.5',
-                'sm:hover:[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor/50',
-                'sm:hover:[&::-webkit-scrollbar-thumb:hover]:bg-bolt-elements-borderColor',
-                'sm:[&::-webkit-scrollbar-track]:bg-transparent',
-              )}
-            >
-              {filteredProviders.length === 0 ? (
-                <div className="px-3 py-3 text-sm">
-                  <div className="text-bolt-elements-textTertiary mb-1">
-                    {debouncedProviderSearchQuery
-                      ? `No providers match "${debouncedProviderSearchQuery}"`
-                      : 'No providers found'}
-                  </div>
-                  {debouncedProviderSearchQuery && (
-                    <div className="text-xs text-bolt-elements-textTertiary">
-                      Try searching for provider names like "OpenAI", "Anthropic", or "Google"
-                    </div>
-                  )}
-                </div>
-              ) : (
-                filteredProviders.map((providerOption, index) => (
-                  <div
-                    ref={(el) => {
-                      providerOptionsRef.current[index] = el;
-                    }}
-                    key={providerOption.name}
-                    role="option"
-                    aria-selected={provider?.name === providerOption.name}
-                    className={classNames(
-                      'px-3 py-2 text-sm cursor-pointer',
-                      'hover:bg-bolt-elements-background-depth-3',
-                      'text-bolt-elements-textPrimary',
-                      'outline-none',
-                      provider?.name === providerOption.name || focusedProviderIndex === index
-                        ? 'bg-bolt-elements-background-depth-2'
-                        : undefined,
-                      focusedProviderIndex === index ? 'ring-1 ring-inset ring-bolt-elements-focus' : undefined,
-                    )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-
-                      if (setProvider) {
-                        setProvider(providerOption);
-
-                        const firstModel = modelList.find((m) => m.provider === providerOption.name);
-
-                        if (firstModel && setModel) {
-                          setModel(firstModel.name);
-                        }
-                      }
-
-                      setIsProviderDropdownOpen(false);
-                      setProviderSearchQuery('');
-                      setDebouncedProviderSearchQuery('');
-                    }}
-                    tabIndex={focusedProviderIndex === index ? 0 : -1}
-                  >
-                    <div className="flex items-center gap-2">
-                      {LOCAL_PROVIDERS.includes(providerOption.name) && (
-                        <span
-                          className={classNames(
-                            'inline-block w-2 h-2 rounded-full flex-shrink-0',
-                            localProviderStatus[providerOption.name] === 'connected'
-                              ? 'bg-green-500'
-                              : localProviderStatus[providerOption.name] === 'disconnected'
-                                ? 'bg-red-400'
-                                : 'bg-bolt-elements-textTertiary',
-                          )}
-                        />
-                      )}
-                      <span
-                        dangerouslySetInnerHTML={{
-                          __html: (providerOption as any).highlightedName || providerOption.name,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Model Combobox */}
-      <div className="relative flex w-full min-w-[70%]" onKeyDown={handleModelKeyDown} ref={modelDropdownRef}>
-        <div
-          className={classNames(
-            'w-full p-2 rounded-lg border border-bolt-elements-borderColor',
-            'bg-bolt-elements-prompt-background text-bolt-elements-textPrimary',
-            'focus-within:outline-none focus-within:ring-2 focus-within:ring-bolt-elements-focus',
-            'transition-all cursor-pointer',
-            isModelDropdownOpen ? 'ring-2 ring-bolt-elements-focus' : undefined,
-          )}
-          onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              setIsModelDropdownOpen(!isModelDropdownOpen);
-            }
-          }}
-          role="combobox"
-          aria-expanded={isModelDropdownOpen}
-          aria-controls="model-listbox"
-          aria-haspopup="listbox"
-          tabIndex={0}
-        >
-          <div className="flex items-center justify-between">
-            <div className="truncate">{modelList.find((m) => m.name === model)?.label || 'Select model'}</div>
+      {/* Detailed Comboboxes (When expanded or custom model selected) */}
+      {effectiveShowDetailed && (
+        <div className="flex gap-2 flex-col sm:flex-row">
+          {/* Provider Combobox */}
+          <div className="relative flex w-full" onKeyDown={handleProviderKeyDown} ref={providerDropdownRef}>
             <div
               className={classNames(
-                'i-ph:caret-down w-4 h-4 text-bolt-elements-textSecondary opacity-75',
-                isModelDropdownOpen ? 'rotate-180' : undefined,
+                'w-full p-2 rounded-lg border border-bolt-elements-borderColor',
+                'bg-bolt-elements-prompt-background text-bolt-elements-textPrimary',
+                'focus-within:outline-none focus-within:ring-2 focus-within:ring-bolt-elements-focus',
+                'transition-all cursor-pointer',
+                isProviderDropdownOpen ? 'ring-2 ring-bolt-elements-focus' : undefined,
               )}
-            />
-          </div>
-        </div>
-
-        {isModelDropdownOpen && (
-          <div
-            className="absolute z-10 w-full mt-1 py-1 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-background-depth-2 shadow-lg"
-            role="listbox"
-            id="model-listbox"
-          >
-            <div className="px-2 pb-2 space-y-2">
-              {/* Free Models Filter Toggle - Only show for OpenRouter */}
-              {provider?.name === 'OpenRouter' && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowFreeModelsOnly(!showFreeModelsOnly);
-                    }}
-                    className={classNames(
-                      'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all',
-                      'hover:bg-bolt-elements-background-depth-3',
-                      showFreeModelsOnly
-                        ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                        : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary border border-bolt-elements-borderColor',
-                    )}
-                  >
-                    <span className="i-ph:gift text-xs" />
-                    Free models only
-                  </button>
-                  {showFreeModelsOnly && (
-                    <span className="text-xs text-bolt-elements-textTertiary">
-                      {filteredModels.length} free model{filteredModels.length !== 1 ? 's' : ''}
-                    </span>
+              onClick={() => setIsProviderDropdownOpen(!isProviderDropdownOpen)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsProviderDropdownOpen(!isProviderDropdownOpen);
+                }
+              }}
+              role="combobox"
+              aria-expanded={isProviderDropdownOpen}
+              aria-controls="provider-listbox"
+              aria-haspopup="listbox"
+              tabIndex={0}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 truncate">
+                  {provider?.name && LOCAL_PROVIDERS.includes(provider.name) && (
+                    <span
+                      className={classNames(
+                        'inline-block w-2 h-2 rounded-full flex-shrink-0',
+                        localProviderStatus[provider.name] === 'connected'
+                          ? 'bg-green-500'
+                          : localProviderStatus[provider.name] === 'disconnected'
+                            ? 'bg-red-400'
+                            : 'bg-bolt-elements-textTertiary',
+                      )}
+                      title={
+                        localProviderStatus[provider.name] === 'connected'
+                          ? `${provider.name} is running`
+                          : localProviderStatus[provider.name] === 'disconnected'
+                            ? `${provider.name} is not reachable`
+                            : 'Checking...'
+                      }
+                    />
                   )}
+                  {provider?.name || 'Select provider'}
                 </div>
-              )}
-
-              {/* Search Result Count */}
-              {debouncedModelSearchQuery && filteredModels.length > 0 && (
-                <div className="text-xs text-bolt-elements-textTertiary px-1">
-                  {filteredModels.length} model{filteredModels.length !== 1 ? 's' : ''} found
-                  {filteredModels.length > 5 && ' (showing best matches)'}
-                </div>
-              )}
-
-              {/* Search Input */}
-              <div className="relative">
-                <input
-                  ref={modelSearchInputRef}
-                  type="text"
-                  value={modelSearchQuery}
-                  onChange={(e) => setModelSearchQuery(e.target.value)}
-                  placeholder="Search models... (⌘K to clear)"
+                <div
                   className={classNames(
-                    'w-full pl-8 pr-8 py-1.5 rounded-md text-sm',
-                    'bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor',
-                    'text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary',
-                    'focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus',
-                    'transition-all',
+                    'i-ph:caret-down w-4 h-4 text-bolt-elements-textSecondary opacity-75',
+                    isProviderDropdownOpen ? 'rotate-180' : undefined,
                   )}
-                  onClick={(e) => e.stopPropagation()}
-                  role="searchbox"
-                  aria-label="Search models"
                 />
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
-                  <span className="i-ph:magnifying-glass text-bolt-elements-textTertiary" />
-                </div>
-                {modelSearchQuery && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearModelSearch();
-                    }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-bolt-elements-background-depth-3 transition-colors"
-                    aria-label="Clear search"
-                  >
-                    <span className="i-ph:x text-bolt-elements-textTertiary text-xs" />
-                  </button>
-                )}
               </div>
             </div>
 
-            <div
-              className={classNames(
-                'max-h-60 overflow-y-auto',
-                'sm:scrollbar-none',
-                '[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:h-2',
-                '[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor',
-                '[&::-webkit-scrollbar-thumb]:hover:bg-bolt-elements-borderColorHover',
-                '[&::-webkit-scrollbar-thumb]:rounded-full',
-                '[&::-webkit-scrollbar-track]:bg-bolt-elements-background-depth-2',
-                '[&::-webkit-scrollbar-track]:rounded-full',
-                'sm:[&::-webkit-scrollbar]:w-1.5 sm:[&::-webkit-scrollbar]:h-1.5',
-                'sm:hover:[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor/50',
-                'sm:hover:[&::-webkit-scrollbar-thumb:hover]:bg-bolt-elements-borderColor',
-                'sm:[&::-webkit-scrollbar-track]:bg-transparent',
-              )}
-            >
-              {modelLoading === 'all' || modelLoading === provider?.name ? (
-                <div className="px-3 py-3 text-sm">
-                  <div className="flex items-center gap-2 text-bolt-elements-textTertiary">
-                    <span className="i-ph:spinner animate-spin" />
-                    Loading models...
-                  </div>
-                </div>
-              ) : filteredModels.length === 0 ? (
-                <div className="px-3 py-3 text-sm">
-                  <div className="text-bolt-elements-textTertiary mb-1">
-                    {debouncedModelSearchQuery
-                      ? `No models match "${debouncedModelSearchQuery}"${showFreeModelsOnly ? ' (free only)' : ''}`
-                      : showFreeModelsOnly
-                        ? 'No free models available'
-                        : provider?.name && LOCAL_PROVIDERS.includes(provider.name)
-                          ? `No models found — is ${provider.name} running?`
-                          : 'No models available'}
-                  </div>
-                  {!debouncedModelSearchQuery && provider?.name && LOCAL_PROVIDERS.includes(provider.name) && (
-                    <div className="text-xs text-bolt-elements-textTertiary mt-1">
-                      Make sure {provider.name} is running and has at least one model loaded.
-                      {provider.name === 'Ollama' && ' Try: ollama pull llama3.2'}
-                      {provider.name === 'LMStudio' && ' Load a model in LM Studio first.'}
+            {isProviderDropdownOpen && (
+              <div
+                className="absolute z-20 w-full mt-1 py-1 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-background-depth-2 shadow-lg"
+                role="listbox"
+                id="provider-listbox"
+              >
+                <div className="px-2 pb-2">
+                  <div className="relative">
+                    <input
+                      ref={providerSearchInputRef}
+                      type="text"
+                      value={providerSearchQuery}
+                      onChange={(e) => setProviderSearchQuery(e.target.value)}
+                      placeholder="Search providers... (⌘K to clear)"
+                      className={classNames(
+                        'w-full pl-8 pr-8 py-1.5 rounded-md text-sm',
+                        'bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor',
+                        'text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary',
+                        'focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus',
+                        'transition-all',
+                      )}
+                      onClick={(e) => e.stopPropagation()}
+                      role="searchbox"
+                      aria-label="Search providers"
+                    />
+                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                      <span className="i-ph:magnifying-glass text-bolt-elements-textTertiary" />
                     </div>
-                  )}
-                  {debouncedModelSearchQuery && (
-                    <div className="text-xs text-bolt-elements-textTertiary">
-                      Try searching for model names, context sizes (e.g., "128k", "1M"), or capabilities
-                    </div>
-                  )}
-                  {showFreeModelsOnly && !debouncedModelSearchQuery && (
-                    <div className="text-xs text-bolt-elements-textTertiary">
-                      Try disabling the "Free models only" filter to see all available models
-                    </div>
-                  )}
-                </div>
-              ) : (
-                filteredModels.map((modelOption, index) => (
-                  <div
-                    ref={(el) => {
-                      modelOptionsRef.current[index] = el;
-                    }}
-                    key={modelOption.name}
-                    role="option"
-                    aria-selected={model === modelOption.name}
-                    className={classNames(
-                      'px-3 py-2 text-sm cursor-pointer',
-                      'hover:bg-bolt-elements-background-depth-3',
-                      'text-bolt-elements-textPrimary',
-                      'outline-none',
-                      model === modelOption.name || focusedModelIndex === index
-                        ? 'bg-bolt-elements-background-depth-2'
-                        : undefined,
-                      focusedModelIndex === index ? 'ring-1 ring-inset ring-bolt-elements-focus' : undefined,
+                    {providerSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearProviderSearch();
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-bolt-elements-background-depth-3 transition-colors"
+                        aria-label="Clear search"
+                      >
+                        <span className="i-ph:x text-bolt-elements-textTertiary text-xs" />
+                      </button>
                     )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setModel?.(modelOption.name);
-                      setIsModelDropdownOpen(false);
-                      setModelSearchQuery('');
-                      setDebouncedModelSearchQuery('');
-                    }}
-                    tabIndex={focusedModelIndex === index ? 0 : -1}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate">
+                  </div>
+                </div>
+
+                <div
+                  className={classNames(
+                    'max-h-60 overflow-y-auto',
+                    'sm:scrollbar-none',
+                    '[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:h-2',
+                    '[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor',
+                    '[&::-webkit-scrollbar-thumb]:hover:bg-bolt-elements-borderColorHover',
+                    '[&::-webkit-scrollbar-thumb]:rounded-full',
+                    '[&::-webkit-scrollbar-track]:bg-bolt-elements-background-depth-2',
+                    '[&::-webkit-scrollbar-track]:rounded-full',
+                    'sm:[&::-webkit-scrollbar]:w-1.5 sm:[&::-webkit-scrollbar]:h-1.5',
+                    'sm:hover:[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor/50',
+                    'sm:hover:[&::-webkit-scrollbar-thumb:hover]:bg-bolt-elements-borderColor',
+                    'sm:[&::-webkit-scrollbar-track]:bg-transparent',
+                  )}
+                >
+                  {filteredProviders.length === 0 ? (
+                    <div className="px-3 py-3 text-sm">
+                      <div className="text-bolt-elements-textTertiary mb-1">
+                        {debouncedProviderSearchQuery
+                          ? `No providers match "${debouncedProviderSearchQuery}"`
+                          : 'No providers found'}
+                      </div>
+                      {debouncedProviderSearchQuery && (
+                        <div className="text-xs text-bolt-elements-textTertiary">
+                          Try searching for provider names like "OpenAI", "Anthropic", or "Google"
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    filteredProviders.map((providerOption, index) => (
+                      <div
+                        ref={(el) => {
+                          providerOptionsRef.current[index] = el;
+                        }}
+                        key={providerOption.name}
+                        role="option"
+                        aria-selected={provider?.name === providerOption.name}
+                        className={classNames(
+                          'px-3 py-2 text-sm cursor-pointer',
+                          'hover:bg-bolt-elements-background-depth-3',
+                          'text-bolt-elements-textPrimary',
+                          'outline-none',
+                          provider?.name === providerOption.name || focusedProviderIndex === index
+                            ? 'bg-bolt-elements-background-depth-2'
+                            : undefined,
+                          focusedProviderIndex === index ? 'ring-1 ring-inset ring-bolt-elements-focus' : undefined,
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          if (setProvider) {
+                            setProvider(providerOption);
+
+                            const firstModel = modelList.find((m) => m.provider === providerOption.name);
+
+                            if (firstModel && setModel) {
+                              setModel(firstModel.name);
+                            }
+                          }
+
+                          setIsProviderDropdownOpen(false);
+                          setProviderSearchQuery('');
+                          setDebouncedProviderSearchQuery('');
+                        }}
+                        tabIndex={focusedProviderIndex === index ? 0 : -1}
+                      >
+                        <div className="flex items-center gap-2">
+                          {LOCAL_PROVIDERS.includes(providerOption.name) && (
+                            <span
+                              className={classNames(
+                                'inline-block w-2 h-2 rounded-full flex-shrink-0',
+                                localProviderStatus[providerOption.name] === 'connected'
+                                  ? 'bg-green-500'
+                                  : localProviderStatus[providerOption.name] === 'disconnected'
+                                    ? 'bg-red-400'
+                                    : 'bg-bolt-elements-textTertiary',
+                              )}
+                            />
+                          )}
                           <span
                             dangerouslySetInnerHTML={{
-                              __html: (modelOption as any).highlightedLabel || modelOption.label,
+                              __html: (providerOption as any).highlightedName || providerOption.name,
                             }}
                           />
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-bolt-elements-textTertiary">
-                            {formatContextSize(modelOption.maxTokenAllowed)} tokens
-                          </span>
-                          {debouncedModelSearchQuery && (modelOption as any).searchScore > 70 && (
-                            <span className="text-xs text-green-500 font-medium">
-                              {(modelOption as any).searchScore.toFixed(0)}% match
-                            </span>
-                          )}
-                        </div>
                       </div>
-                      <div className="flex items-center gap-1 ml-2">
-                        {isModelLikelyFree(modelOption, provider?.name) && (
-                          <span className="i-ph:gift text-xs text-purple-400" title="Free model" />
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Model Combobox */}
+          <div className="relative flex w-full min-w-[70%]" onKeyDown={handleModelKeyDown} ref={modelDropdownRef}>
+            <div
+              className={classNames(
+                'w-full p-2 rounded-lg border border-bolt-elements-borderColor',
+                'bg-bolt-elements-prompt-background text-bolt-elements-textPrimary',
+                'focus-within:outline-none focus-within:ring-2 focus-within:ring-bolt-elements-focus',
+                'transition-all cursor-pointer',
+                isModelDropdownOpen ? 'ring-2 ring-bolt-elements-focus' : undefined,
+              )}
+              onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsModelDropdownOpen(!isModelDropdownOpen);
+                }
+              }}
+              role="combobox"
+              aria-expanded={isModelDropdownOpen}
+              aria-controls="model-listbox"
+              aria-haspopup="listbox"
+              tabIndex={0}
+            >
+              <div className="flex items-center justify-between">
+                <div className="truncate">{modelList.find((m) => m.name === model)?.label || 'Select model'}</div>
+                <div
+                  className={classNames(
+                    'i-ph:caret-down w-4 h-4 text-bolt-elements-textSecondary opacity-75',
+                    isModelDropdownOpen ? 'rotate-180' : undefined,
+                  )}
+                />
+              </div>
+            </div>
+
+            {isModelDropdownOpen && (
+              <div
+                className="absolute z-10 w-full mt-1 py-1 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-background-depth-2 shadow-lg"
+                role="listbox"
+                id="model-listbox"
+              >
+                <div className="px-2 pb-2 space-y-2">
+                  {/* Free Models Filter Toggle - Only show for OpenRouter */}
+                  {provider?.name === 'OpenRouter' && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowFreeModelsOnly(!showFreeModelsOnly);
+                        }}
+                        className={classNames(
+                          'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all',
+                          'hover:bg-bolt-elements-background-depth-3',
+                          showFreeModelsOnly
+                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                            : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary border border-bolt-elements-borderColor',
                         )}
-                        {model === modelOption.name && (
-                          <span className="i-ph:check text-xs text-green-500" title="Selected" />
-                        )}
+                      >
+                        <span className="i-ph:gift text-xs" />
+                        Free models only
+                      </button>
+                      {showFreeModelsOnly && (
+                        <span className="text-xs text-bolt-elements-textTertiary">
+                          {filteredModels.length} free model{filteredModels.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Search Result Count */}
+                  {debouncedModelSearchQuery && filteredModels.length > 0 && (
+                    <div className="text-xs text-bolt-elements-textTertiary px-1">
+                      {filteredModels.length} model{filteredModels.length !== 1 ? 's' : ''} found
+                      {filteredModels.length > 5 && ' (showing best matches)'}
+                    </div>
+                  )}
+
+                  {/* Search Input */}
+                  <div className="relative">
+                    <input
+                      ref={modelSearchInputRef}
+                      type="text"
+                      value={modelSearchQuery}
+                      onChange={(e) => setModelSearchQuery(e.target.value)}
+                      placeholder="Search models... (⌘K to clear)"
+                      className={classNames(
+                        'w-full pl-8 pr-8 py-1.5 rounded-md text-sm',
+                        'bg-bolt-elements-background-depth-2 border border-bolt-elements-borderColor',
+                        'text-bolt-elements-textPrimary placeholder:text-bolt-elements-textTertiary',
+                        'focus:outline-none focus:ring-2 focus:ring-bolt-elements-focus',
+                        'transition-all',
+                      )}
+                      onClick={(e) => e.stopPropagation()}
+                      role="searchbox"
+                      aria-label="Search models"
+                    />
+                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2">
+                      <span className="i-ph:magnifying-glass text-bolt-elements-textTertiary" />
+                    </div>
+                    {modelSearchQuery && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearModelSearch();
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-bolt-elements-background-depth-3 transition-colors"
+                        aria-label="Clear search"
+                      >
+                        <span className="i-ph:x text-bolt-elements-textTertiary text-xs" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  className={classNames(
+                    'max-h-60 overflow-y-auto',
+                    'sm:scrollbar-none',
+                    '[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar]:h-2',
+                    '[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor',
+                    '[&::-webkit-scrollbar-thumb]:hover:bg-bolt-elements-borderColorHover',
+                    '[&::-webkit-scrollbar-thumb]:rounded-full',
+                    '[&::-webkit-scrollbar-track]:bg-bolt-elements-background-depth-2',
+                    '[&::-webkit-scrollbar-track]:rounded-full',
+                    'sm:[&::-webkit-scrollbar]:w-1.5 sm:[&::-webkit-scrollbar]:h-1.5',
+                    'sm:hover:[&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor/50',
+                    'sm:hover:[&::-webkit-scrollbar-thumb:hover]:bg-bolt-elements-borderColor',
+                    'sm:[&::-webkit-scrollbar-track]:bg-transparent',
+                  )}
+                >
+                  {modelLoading === 'all' || modelLoading === provider?.name ? (
+                    <div className="px-3 py-3 text-sm">
+                      <div className="flex items-center gap-2 text-bolt-elements-textTertiary">
+                        <span className="i-ph:spinner animate-spin" />
+                        Loading models...
                       </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  ) : filteredModels.length === 0 ? (
+                    <div className="px-3 py-3 text-sm">
+                      <div className="text-bolt-elements-textTertiary mb-1">
+                        {debouncedModelSearchQuery
+                          ? `No models match "${debouncedModelSearchQuery}"${showFreeModelsOnly ? ' (free only)' : ''}`
+                          : showFreeModelsOnly
+                            ? 'No free models available'
+                            : provider?.name && LOCAL_PROVIDERS.includes(provider.name)
+                              ? `No models found — is ${provider.name} running?`
+                              : 'No models available'}
+                      </div>
+                      {!debouncedModelSearchQuery && provider?.name && LOCAL_PROVIDERS.includes(provider.name) && (
+                        <div className="text-xs text-bolt-elements-textTertiary mt-1">
+                          Make sure {provider.name} is running and has at least one model loaded.
+                          {provider.name === 'Ollama' && ' Try: ollama pull llama3.2'}
+                          {provider.name === 'LMStudio' && ' Load a model in LM Studio first.'}
+                        </div>
+                      )}
+                      {debouncedModelSearchQuery && (
+                        <div className="text-xs text-bolt-elements-textTertiary">
+                          Try searching for model names, context sizes (e.g., "128k", "1M"), or capabilities
+                        </div>
+                      )}
+                      {showFreeModelsOnly && !debouncedModelSearchQuery && (
+                        <div className="text-xs text-bolt-elements-textTertiary">
+                          Try disabling the "Free models only" filter to see all available models
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    filteredModels.map((modelOption, index) => (
+                      <div
+                        ref={(el) => {
+                          modelOptionsRef.current[index] = el;
+                        }}
+                        key={modelOption.name}
+                        role="option"
+                        aria-selected={model === modelOption.name}
+                        className={classNames(
+                          'px-3 py-2 text-sm cursor-pointer',
+                          'hover:bg-bolt-elements-background-depth-3',
+                          'text-bolt-elements-textPrimary',
+                          'outline-none',
+                          model === modelOption.name || focusedModelIndex === index
+                            ? 'bg-bolt-elements-background-depth-2'
+                            : undefined,
+                          focusedModelIndex === index ? 'ring-1 ring-inset ring-bolt-elements-focus' : undefined,
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModel?.(modelOption.name);
+                          setIsModelDropdownOpen(false);
+                          setModelSearchQuery('');
+                          setDebouncedModelSearchQuery('');
+                        }}
+                        tabIndex={focusedModelIndex === index ? 0 : -1}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate">
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: (modelOption as any).highlightedLabel || modelOption.label,
+                                }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-xs text-bolt-elements-textTertiary">
+                                {formatContextSize(modelOption.maxTokenAllowed)} tokens
+                              </span>
+                              {debouncedModelSearchQuery && (modelOption as any).searchScore > 70 && (
+                                <span className="text-xs text-green-500 font-medium">
+                                  {(modelOption as any).searchScore.toFixed(0)}% match
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 ml-2">
+                            {isModelLikelyFree(modelOption, provider?.name) && (
+                              <span className="i-ph:gift text-xs text-purple-400" title="Free model" />
+                            )}
+                            {model === modelOption.name && (
+                              <span className="i-ph:check text-xs text-green-500" title="Selected" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

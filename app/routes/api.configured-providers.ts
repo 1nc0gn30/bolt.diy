@@ -62,6 +62,12 @@ export const loader: LoaderFunction = async ({ context }) => {
           }
         }
 
+        // ZothLocal is always available on the host machine
+        if (providerName === 'ZothLocal') {
+          isConfigured = true;
+          configMethod = 'environment';
+        }
+
         // For providers that might need API keys as well (check this separately, not as fallback)
         if (config.apiTokenKey && !isConfigured) {
           const apiTokenEnvVar = config.apiTokenKey;
