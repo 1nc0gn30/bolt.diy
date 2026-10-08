@@ -276,16 +276,52 @@ export async function streamText(props: {
     ),
   );
 
-  const streamParams = {
+  // Check if model supports developer / system instructions
+  const isDeveloperInstructionDisabled =
+    modelDetails.name.toLowerCase().includes('antigravity-preview') ||
+    modelDetails.name.toLowerCase().includes('gemma') ||
+    modelDetails.name.toLowerCase().includes('embedding') ||
+    modelDetails.name.toLowerCase().includes('aqa');
+
+  let coreMessages = convertToCoreMessages(processedMessages as any);
+  let effectiveSystemPrompt: string | undefined = chatMode === 'build' ? systemPrompt : discussPrompt();
+
+  if (isDeveloperInstructionDisabled && effectiveSystemPrompt) {
+    logger.info(
+      `Model "${modelDetails.name}" lacks developer instruction support; inlining system instruction into user message`,
+    );
+
+    if (coreMessages.length > 0 && coreMessages[0].role === 'user') {
+      coreMessages = [
+        {
+          ...coreMessages[0],
+          content: `[SYSTEM INSTRUCTION]\n${effectiveSystemPrompt}\n[END SYSTEM INSTRUCTION]\n\n${coreMessages[0].content}`,
+        },
+        ...coreMessages.slice(1),
+      ];
+    } else {
+      coreMessages = [
+        {
+          role: 'user',
+          content: `[SYSTEM INSTRUCTION]\n${effectiveSystemPrompt}\n[END SYSTEM INSTRUCTION]`,
+        },
+        ...coreMessages,
+      ];
+    }
+
+    effectiveSystemPrompt = undefined;
+  }
+
+  const streamParams: any = {
     model: provider.getModelInstance({
       model: modelDetails.name,
       serverEnv,
       apiKeys,
       providerSettings,
     }),
-    system: chatMode === 'build' ? systemPrompt : discussPrompt(),
+    ...(effectiveSystemPrompt ? { system: effectiveSystemPrompt } : {}),
     ...tokenParams,
-    messages: convertToCoreMessages(processedMessages as any),
+    messages: coreMessages,
     ...filteredOptions,
 
     // Set temperature to 1 for reasoning models (required by OpenAI API)

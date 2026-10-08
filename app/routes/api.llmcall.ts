@@ -41,29 +41,6 @@ function getCompletionTokenLimit(modelDetails: ModelInfo): number {
   return Math.min(MAX_TOKENS, 16384);
 }
 
-function validateTokenLimits(modelDetails: ModelInfo, requestedTokens: number): { valid: boolean; error?: string } {
-  const modelMaxTokens = modelDetails.maxTokenAllowed || 128000;
-  const maxCompletionTokens = getCompletionTokenLimit(modelDetails);
-
-  // Check against model's context window
-  if (requestedTokens > modelMaxTokens) {
-    return {
-      valid: false,
-      error: `Requested tokens (${requestedTokens}) exceed model's context window (${modelMaxTokens}). Please reduce your request size.`,
-    };
-  }
-
-  // Check against completion token limits
-  if (requestedTokens > maxCompletionTokens) {
-    return {
-      valid: false,
-      error: `Requested tokens (${requestedTokens}) exceed model's completion limit (${maxCompletionTokens}). Consider using a model with higher token limits.`,
-    };
-  }
-
-  return { valid: true };
-}
-
 async function llmCallAction({ context, request }: ActionFunctionArgs) {
   const { system, message, model, provider, streamOutput } = await request.json<{
     system: string;
@@ -152,23 +129,20 @@ async function llmCallAction({ context, request }: ActionFunctionArgs) {
   } else {
     try {
       const models = await getModelList({ apiKeys, providerSettings, serverEnv: context.cloudflare?.env as any });
-      const modelDetails = models.find((m: ModelInfo) => m.name === model);
+
+      const modelDetails =
+        models.find((m: ModelInfo) => m.name === model && m.provider === provider.name) ||
+        models.find((m: ModelInfo) => m.name === model);
 
       if (!modelDetails) {
         throw new Error('Model not found');
       }
 
-      const dynamicMaxTokens = modelDetails ? getCompletionTokenLimit(modelDetails) : Math.min(MAX_TOKENS, 16384);
-
-      // Validate token limits before making API request
-      const validation = validateTokenLimits(modelDetails, dynamicMaxTokens);
-
-      if (!validation.valid) {
-        throw new Response(validation.error, {
-          status: 400,
-          statusText: 'Token Limit Exceeded',
-        });
-      }
+      const dynamicMaxTokens = Math.min(
+        getCompletionTokenLimit(modelDetails),
+        modelDetails.maxCompletionTokens || 16384,
+        modelDetails.maxTokenAllowed || 128000,
+      );
 
       const providerInfo = PROVIDER_LIST.find((p) => p.name === provider.name);
 
@@ -185,13 +159,31 @@ async function llmCallAction({ context, request }: ActionFunctionArgs) {
       // Use maxCompletionTokens for reasoning models (o1, GPT-5), maxTokens for traditional models
       const tokenParams = isReasoning ? { maxCompletionTokens: dynamicMaxTokens } : { maxTokens: dynamicMaxTokens };
 
+      // Check if model supports developer / system instructions
+      const isDeveloperInstructionDisabled =
+        modelDetails.name.toLowerCase().includes('antigravity-preview') ||
+        modelDetails.name.toLowerCase().includes('gemma') ||
+        modelDetails.name.toLowerCase().includes('embedding') ||
+        modelDetails.name.toLowerCase().includes('aqa');
+
+      let coreMessageContent = `${message}`;
+      let effectiveSystem: string | undefined = system;
+
+      if (isDeveloperInstructionDisabled && effectiveSystem) {
+        logger.info(
+          `Model "${modelDetails.name}" lacks developer instruction support; inlining system instruction into user message`,
+        );
+        coreMessageContent = `[SYSTEM INSTRUCTION]\n${effectiveSystem}\n[END SYSTEM INSTRUCTION]\n\n${coreMessageContent}`;
+        effectiveSystem = undefined;
+      }
+
       // Filter out unsupported parameters for reasoning models
-      const baseParams = {
-        system,
+      const baseParams: any = {
+        ...(effectiveSystem ? { system: effectiveSystem } : {}),
         messages: [
           {
             role: 'user' as const,
-            content: `${message}`,
+            content: coreMessageContent,
           },
         ],
         model: providerInfo.getModelInstance({
@@ -229,7 +221,28 @@ async function llmCallAction({ context, request }: ActionFunctionArgs) {
         ),
       );
 
-      const result = await generateText(finalParams);
+      let result;
+
+      try {
+        result = await generateText(finalParams);
+      } catch (callError: any) {
+        if (callError?.message?.includes('Developer instruction is not enabled') && (finalParams as any).system) {
+          logger.warn(`Model "${modelDetails.name}" rejected developer instruction. Retrying with inlined prompt...`);
+
+          const { system: rejectedSystem, ...paramsWithoutSystem } = finalParams as any;
+          result = await generateText({
+            ...paramsWithoutSystem,
+            messages: [
+              {
+                role: 'user' as const,
+                content: `[SYSTEM INSTRUCTION]\n${rejectedSystem}\n[END SYSTEM INSTRUCTION]\n\n${message}`,
+              },
+            ],
+          });
+        } else {
+          throw callError;
+        }
+      }
       logger.info(`Generated response`);
 
       return new Response(JSON.stringify(result), {

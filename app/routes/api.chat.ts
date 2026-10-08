@@ -42,7 +42,7 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 
 async function chatAction({ context, request }: ActionFunctionArgs) {
   const streamRecovery = new StreamRecoveryManager({
-    timeout: 45000,
+    timeout: 90000, // 90 seconds - allow ample time for reasoning models & multi-file synthesis
     maxRetries: 2,
     onTimeout: () => {
       logger.warn('Stream timeout - attempting recovery');
@@ -149,6 +149,8 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             chatId: processedMessages.slice(-1)?.[0]?.id,
           } as ContextAnnotation);
 
+          streamRecovery.updateActivity();
+
           // Update context buffer
           logger.debug('Updating Context Buffer');
           dataStream.writeData({
@@ -205,7 +207,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             message: 'Code Files Selected',
           } satisfies ProgressAnnotation);
 
-          // logger.debug('Code Files Selected');
+          streamRecovery.updateActivity();
         }
 
         const options: StreamingOptions = {
@@ -333,12 +335,19 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               logger.error('Streaming error:', error);
               streamRecovery.stop();
 
-              // Enhanced error handling for common streaming issues
               if (error.message?.includes('Invalid JSON response')) {
                 logger.error('Invalid JSON response detected - likely malformed API response');
               } else if (error.message?.includes('token')) {
                 logger.error('Token-related error detected - possible token limit exceeded');
               }
+
+              dataStream.writeData({
+                type: 'progress',
+                label: 'response',
+                status: 'failed',
+                order: progressCounter++,
+                message: `AI Stream Error: ${error.message || 'Stream interrupted'}`,
+              } satisfies ProgressAnnotation);
 
               return;
             }

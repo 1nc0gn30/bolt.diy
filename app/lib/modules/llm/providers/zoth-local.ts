@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModelV1, LanguageModelV1CallOptions, LanguageModelV1StreamPart } from 'ai';
 import { BaseProvider } from '~/lib/modules/llm/base-provider';
@@ -38,12 +39,44 @@ function formatPromptForCli(prompt: any[]): string {
   return formatted.trim();
 }
 
+function resolveExecutable(cmd: string): string {
+  const homeDir = process.env.HOME || '/home/zoth';
+
+  const candidates = [`${homeDir}/.local/bin/${cmd}`, `/usr/local/bin/${cmd}`, `/usr/bin/${cmd}`];
+
+  try {
+    for (const cand of candidates) {
+      if (fs.existsSync(cand)) {
+        return cand;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  return cmd;
+}
+
 function createCliLanguageModel(
   modelId: string,
   command: string,
   argsBuilder: (promptText: string) => string[],
-  outputParser: (chunk: string, enqueue: (part: LanguageModelV1StreamPart) => void) => void,
+  outputHandler?: (chunk: string, enqueue: (part: LanguageModelV1StreamPart) => void) => void,
 ): LanguageModelV1 {
+  const binPath = resolveExecutable(command);
+  const homeDir = process.env.HOME || '/home/zoth';
+  const userName = process.env.USER || 'zoth';
+
+  const cliEnv = {
+    ...process.env,
+    HOME: homeDir,
+    USER: userName,
+    LOGNAME: userName,
+    PATH: `${homeDir}/.local/bin:/usr/local/bin:${process.env.PATH || ''}`,
+    NO_COLOR: '1',
+    TERM: 'dumb',
+  };
+
   return {
     specificationVersion: 'v1',
     provider: 'ZothLocal',
@@ -51,16 +84,21 @@ function createCliLanguageModel(
     defaultObjectGenerationMode: 'json',
     async doGenerate(options: LanguageModelV1CallOptions) {
       const promptText = formatPromptForCli(options.prompt);
+      const spawn = await getSpawn();
 
       let output = '';
 
-      const spawn = await getSpawn();
-
       await new Promise<void>((resolve, reject) => {
-        const child = spawn(command, argsBuilder(promptText));
+        const child = spawn(binPath, argsBuilder(promptText), {
+          env: cliEnv,
+        });
 
         child.stdout.on('data', (d: any) => {
           output += d.toString();
+        });
+
+        child.stderr.on('data', (d: any) => {
+          logger.warn(`[${command} stderr]: ${d.toString().slice(0, 120)}`);
         });
 
         child.on('close', (code: number) => {
@@ -87,17 +125,25 @@ function createCliLanguageModel(
 
       const stream = new ReadableStream<LanguageModelV1StreamPart>({
         start(controller) {
-          const child = spawn(command, argsBuilder(promptText));
-
-          let buffer = '';
+          const child = spawn(binPath, argsBuilder(promptText), {
+            env: cliEnv,
+          });
 
           child.stdout.on('data', (chunk: any) => {
-            buffer += chunk.toString();
-            outputParser(buffer, (part) => controller.enqueue(part));
+            const raw = chunk.toString();
+
+            if (outputHandler) {
+              outputHandler(raw, (part) => controller.enqueue(part));
+            } else if (raw) {
+              controller.enqueue({
+                type: 'text-delta',
+                textDelta: raw,
+              });
+            }
           });
 
           child.stderr.on('data', (chunk: any) => {
-            logger.warn(`[${command} stderr]: ${chunk.toString().slice(0, 100)}`);
+            logger.warn(`[${command} stderr]: ${chunk.toString().slice(0, 120)}`);
           });
 
           child.on('close', () => {
@@ -136,21 +182,49 @@ export default class ZothLocalProvider extends BaseProvider {
   staticModels: ModelInfo[] = [
     {
       name: 'agy-engine',
-      label: '⚡ Google Antigravity (AGY Local CLI)',
+      label: '⚡ Google Antigravity (AGY Local CLI - Coding Agent)',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 128000,
+      maxCompletionTokens: 16384,
+    },
+    {
+      name: 'agy-architect',
+      label: '🏗️ AGY Fullstack System Architect',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 128000,
+      maxCompletionTokens: 16384,
+    },
+    {
+      name: 'agy-linter',
+      label: '🛡️ AGY Code Review & Security Auditor',
       provider: 'ZothLocal',
       maxTokenAllowed: 128000,
       maxCompletionTokens: 16384,
     },
     {
       name: 'hermes-agent',
-      label: '👑 Hermes Agent (Nous Research / Local)',
+      label: '👑 Nous Research Hermes 3 Agent (OneShot Fast)',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 65536,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'hermes-coder',
+      label: '💻 Hermes 3 Coder Specialist',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 65536,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'hermes-moa',
+      label: '🤝 Hermes Mixture-of-Agents Coordinator',
       provider: 'ZothLocal',
       maxTokenAllowed: 65536,
       maxCompletionTokens: 8192,
     },
     {
       name: 'claude-cli',
-      label: '🧠 Claude Code (Anthropic Local CLI)',
+      label: '🧠 Claude Code Local Agent CLI',
       provider: 'ZothLocal',
       maxTokenAllowed: 128000,
       maxCompletionTokens: 16384,
@@ -176,6 +250,20 @@ export default class ZothLocalProvider extends BaseProvider {
       maxTokenAllowed: 32768,
       maxCompletionTokens: 8192,
     },
+    {
+      name: 'qwen2.5:1.5b',
+      label: '⚡ Qwen 2.5 1.5B (Ollama Local)',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 32768,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'qwen2.5:0.5b',
+      label: '🚀 Qwen 2.5 0.5B Ultra-Fast (Ollama Local)',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 32768,
+      maxCompletionTokens: 8192,
+    },
   ];
 
   async getDynamicModels(): Promise<ModelInfo[]> {
@@ -191,77 +279,56 @@ export default class ZothLocalProvider extends BaseProvider {
     const { model } = options;
 
     if (model === 'agy-engine') {
-      let buffer = '';
-      return createCliLanguageModel(
-        'agy-engine',
-        'agy',
-        (promptText) => ['-p', promptText, '--output-format', 'stream-json'],
-        (raw, enqueue) => {
-          buffer = raw;
+      return createCliLanguageModel('agy-engine', 'agy', (promptText) => ['-p', promptText]);
+    }
 
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
+    if (model === 'agy-architect') {
+      return createCliLanguageModel('agy-architect', 'agy', (promptText) => [
+        '-p',
+        `[ROLE: Senior System Architect & Fullstack Engineer]\n${promptText}`,
+      ]);
+    }
 
-          for (const line of lines) {
-            if (!line.trim()) {
-              continue;
-            }
-
-            try {
-              const data = JSON.parse(line);
-
-              if (data.event === 'step_update' && data.step_update?.text_delta) {
-                enqueue({
-                  type: 'text-delta',
-                  textDelta: data.step_update.text_delta,
-                });
-              }
-            } catch {
-              // Ignore non-json lines
-            }
-          }
-        },
-      );
+    if (model === 'agy-linter') {
+      return createCliLanguageModel('agy-linter', 'agy', (promptText) => [
+        '-p',
+        `[ROLE: Code Reviewer & Security Auditor]\n${promptText}`,
+      ]);
     }
 
     if (model === 'claude-cli') {
-      let emittedLen = 0;
-      return createCliLanguageModel(
-        'claude-cli',
-        'claude',
-        (promptText) => ['-p', promptText],
-        (raw, enqueue) => {
-          const newChunk = raw.slice(emittedLen);
-
-          if (newChunk) {
-            emittedLen = raw.length;
-            enqueue({
-              type: 'text-delta',
-              textDelta: newChunk,
-            });
-          }
-        },
-      );
+      return createCliLanguageModel('claude-cli', 'claude', (promptText) => ['-p', promptText]);
     }
 
     if (model === 'hermes-agent') {
-      let emittedLen = 0;
-      return createCliLanguageModel(
-        'hermes-agent',
-        'hermes',
-        (promptText) => ['-z', promptText],
-        (raw, enqueue) => {
-          const newChunk = raw.slice(emittedLen);
+      return createCliLanguageModel('hermes-agent', 'hermes', (promptText) => [
+        '-z',
+        promptText,
+        '--ignore-rules',
+        '--yolo',
+      ]);
+    }
 
-          if (newChunk) {
-            emittedLen = raw.length;
-            enqueue({
-              type: 'text-delta',
-              textDelta: newChunk,
-            });
-          }
-        },
-      );
+    if (model === 'hermes-coder') {
+      return createCliLanguageModel('hermes-coder', 'hermes', (promptText) => [
+        '-z',
+        promptText,
+        '--ignore-rules',
+        '--yolo',
+        '-m',
+        'qwen2.5-coder:1.5b',
+      ]);
+    }
+
+    if (model === 'hermes-moa') {
+      return createCliLanguageModel('hermes-moa', 'hermes', (promptText) => [
+        '-z',
+        promptText,
+        '--ignore-rules',
+        '--yolo',
+        '-m',
+        'llama3.2:1b',
+      ]);
     }
 
     // Default: Local Ollama on 127.0.0.1:11434 via OpenAI-compatible endpoint

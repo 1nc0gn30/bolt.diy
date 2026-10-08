@@ -13,28 +13,41 @@ export default class AnthropicProvider extends BaseProvider {
   };
 
   staticModels: ModelInfo[] = [
-    /*
-     * Essential fallback models - only the most stable/reliable ones
-     * Claude 3.5 Sonnet: 200k context, excellent for complex reasoning and coding
-     */
+    {
+      name: 'claude-3-7-sonnet-20250219',
+      label: 'Claude 3.7 Sonnet (Hybrid Reasoning)',
+      provider: 'Anthropic',
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 64000,
+    },
     {
       name: 'claude-3-5-sonnet-20241022',
-      label: 'Claude 3.5 Sonnet',
+      label: 'Claude 3.5 Sonnet v2',
       provider: 'Anthropic',
       maxTokenAllowed: 200000,
-      maxCompletionTokens: 128000,
+      maxCompletionTokens: 64000,
     },
-
-    // Claude 3 Haiku: 200k context, fastest and most cost-effective
+    {
+      name: 'claude-3-5-haiku-20241022',
+      label: 'Claude 3.5 Haiku',
+      provider: 'Anthropic',
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 64000,
+    },
+    {
+      name: 'claude-3-opus-20240229',
+      label: 'Claude 3 Opus',
+      provider: 'Anthropic',
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 32000,
+    },
     {
       name: 'claude-3-haiku-20240307',
-      label: 'Claude 3 Haiku',
+      label: 'Claude 3 Haiku (Legacy)',
       provider: 'Anthropic',
       maxTokenAllowed: 200000,
       maxCompletionTokens: 128000,
     },
-
-    // Claude Opus 4: 200k context, 32k output limit (latest flagship model)
     {
       name: 'claude-opus-4-20250514',
       label: 'Claude 4 Opus',
@@ -80,6 +93,8 @@ export default class AnthropicProvider extends BaseProvider {
       // Anthropic provides max_tokens in their API response
       if (m.max_tokens) {
         contextWindow = m.max_tokens;
+      } else if (m.id?.includes('claude-3-7-sonnet')) {
+        contextWindow = 200000;
       } else if (m.id?.includes('claude-3-5-sonnet')) {
         contextWindow = 200000; // Claude 3.5 Sonnet has 200k context
       } else if (m.id?.includes('claude-3-haiku')) {
@@ -93,7 +108,9 @@ export default class AnthropicProvider extends BaseProvider {
       // Determine completion token limits based on specific model
       let maxCompletionTokens = 128000; // default for older Claude 3 models
 
-      if (m.id?.includes('claude-opus-4')) {
+      if (m.id?.includes('claude-3-7-sonnet')) {
+        maxCompletionTokens = 64000; // Claude 3.7 Sonnet: 64K output limit
+      } else if (m.id?.includes('claude-opus-4')) {
         maxCompletionTokens = 32000; // Claude 4 Opus: 32K output limit
       } else if (m.id?.includes('claude-sonnet-4')) {
         maxCompletionTokens = 64000; // Claude 4 Sonnet: 64K output limit

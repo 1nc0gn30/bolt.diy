@@ -28,6 +28,20 @@ export default class GoogleProvider extends BaseProvider {
       maxCompletionTokens: 65536,
     },
     {
+      name: 'gemini-2.0-flash',
+      label: 'Gemini 2.0 Flash',
+      provider: 'Google',
+      maxTokenAllowed: 1048576,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'gemini-2.0-flash-lite',
+      label: 'Gemini 2.0 Flash Lite',
+      provider: 'Google',
+      maxTokenAllowed: 1048576,
+      maxCompletionTokens: 8192,
+    },
+    {
       name: 'gemini-flash-latest',
       label: 'Gemini Flash Latest',
       provider: 'Google',
@@ -83,12 +97,23 @@ export default class GoogleProvider extends BaseProvider {
       throw new Error('Invalid response format from Google API');
     }
 
-    // Filter out models with very low token limits and experimental/unstable models
+    // Filter out models with very low token limits, embeddings, internal preview, and non-content-generation models
     const data = res.models.filter((model: any) => {
-      const hasGoodTokenLimit = (model.outputTokenLimit || 0) > 8000;
-      const isStable = !model.name.includes('exp') || model.name.includes('flash-exp');
+      const modelName = (model.name || '').replace('models/', '').toLowerCase();
+      const hasGoodTokenLimit = (model.outputTokenLimit || 0) > 4000;
 
-      return hasGoodTokenLimit && isStable;
+      const isStable =
+        !model.name.includes('exp') || model.name.includes('flash-exp') || model.name.includes('pro-exp');
+
+      const supportsGenerate =
+        !model.supportedGenerationMethods || model.supportedGenerationMethods.includes('generateContent');
+      const isUncallable =
+        modelName.includes('antigravity-preview') ||
+        modelName.includes('embedding') ||
+        modelName.includes('aqa') ||
+        modelName.includes('imagen');
+
+      return hasGoodTokenLimit && isStable && supportsGenerate && !isUncallable;
     });
 
     return data.map((m: any) => {

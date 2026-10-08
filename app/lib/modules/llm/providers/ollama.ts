@@ -37,7 +37,64 @@ export default class OllamaProvider extends BaseProvider {
     baseUrlKey: 'OLLAMA_API_BASE_URL',
   };
 
-  staticModels: ModelInfo[] = [];
+  staticModels: ModelInfo[] = [
+    {
+      name: 'qwen2.5-coder:1.5b',
+      label: 'Qwen 2.5 Coder 1.5B (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 32768,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'llama3.2:1b',
+      label: 'Llama 3.2 1B (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 131072,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'zoth-model:latest',
+      label: 'Zoth Sovereign Fine-tune (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 32768,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'qwen2.5:1.5b',
+      label: 'Qwen 2.5 1.5B (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 32768,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'qwen2.5:0.5b',
+      label: 'Qwen 2.5 0.5B Ultra-Fast (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 32768,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'deepseek-r1:latest',
+      label: 'DeepSeek R1 Distill (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 64000,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'qwen2.5-coder:7b',
+      label: 'Qwen 2.5 Coder 7B (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 32768,
+      maxCompletionTokens: 8192,
+    },
+    {
+      name: 'llama3.3:70b',
+      label: 'Llama 3.3 70B (Local)',
+      provider: 'Ollama',
+      maxTokenAllowed: 128000,
+      maxCompletionTokens: 8192,
+    },
+  ];
 
   getDefaultNumCtx(serverEnv?: Env): number {
     const envRecord = this.convertEnvToRecord(serverEnv);
@@ -59,7 +116,7 @@ export default class OllamaProvider extends BaseProvider {
     });
 
     if (!baseUrl) {
-      throw new Error('No baseUrl found for Ollama provider');
+      baseUrl = 'http://127.0.0.1:11434';
     }
 
     baseUrl = this.resolveDockerUrl(baseUrl, serverEnv);
