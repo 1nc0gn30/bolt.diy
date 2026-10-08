@@ -19,7 +19,7 @@ export const TOOL_EXECUTION_ERROR = 'Error: An error occured while calling tool'
 const llmManager = LLMManager.getInstance(import.meta.env);
 
 export const PROVIDER_LIST = llmManager.getAllProviders();
-export const DEFAULT_PROVIDER = llmManager.getDefaultProvider();
+export const DEFAULT_PROVIDER = llmManager.getProvider('Google') || llmManager.getDefaultProvider();
 
 export const providerBaseUrlEnvKeys: Record<string, { baseUrlKey?: string; apiTokenKey?: string }> = {};
 PROVIDER_LIST.forEach((provider) => {

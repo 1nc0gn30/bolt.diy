@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 
 interface ZothBentoFeaturesProps {
-  onSelectLocalEngine?: () => void;
+  onSelectCloudModel?: () => void;
   onSelectStarter?: () => void;
 }
 
-export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectLocalEngine, onSelectStarter }) => {
+export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCloudModel, onSelectStarter }) => {
   const [showMcpModal, setShowMcpModal] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -36,26 +36,26 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectLo
   return (
     <div className="w-full max-w-chat mx-auto px-4 mb-2.5">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {/* Card 1: Local AI Engines */}
+        {/* Card 1: Frontier Cloud Models */}
         <div
-          onClick={onSelectLocalEngine}
+          onClick={onSelectCloudModel}
           className="group relative overflow-hidden rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-b from-[#14141E]/90 to-[#0A0A0F]/90 p-3.5 transition-all duration-300 hover:-translate-y-1 hover:border-[#D4AF37]/50 hover:shadow-[0_8px_30px_rgba(212,175,55,0.15)] cursor-pointer"
         >
           <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-[#D4AF37]/10 to-transparent blur-xl pointer-events-none" />
           <div className="flex items-center justify-between mb-2">
             <div className="w-7 h-7 rounded-lg bg-[#D4AF37]/10 border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] group-hover:scale-110 transition-transform">
-              <div className="i-ph:cpu-fill text-base" />
+              <div className="i-ph:sparkle-fill text-base" />
             </div>
-            <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-              No API Keys
+            <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-400">
+              Frontier LLMs
             </span>
           </div>
           <h3 className="text-sm font-bold text-white group-hover:text-[#F5E6AB] transition-colors flex items-center gap-1.5">
-            ZothOS Local Engines
+            Frontier Cloud Models
             <span className="i-ph:arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity text-[#D4AF37]" />
           </h3>
           <p className="text-xs text-bolt-elements-textSecondary mt-1 leading-relaxed">
-            Run AGY, Nous Hermes Agent, Claude Code & Ollama locally with zero cloud telemetry.
+            Architect with Gemini 2.5 Flash, Claude 3.7 Sonnet, DeepSeek R1, OpenAI o3-mini & Groq LPU.
           </p>
         </div>
 

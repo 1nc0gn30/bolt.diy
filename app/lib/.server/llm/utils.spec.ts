@@ -1,6 +1,7 @@
 import type { Message } from 'ai';
 import { describe, expect, it } from 'vitest';
 import { createFilesContext, extractCurrentContext, extractPropertiesFromMessage, simplifyBoltActions } from './utils';
+import { DEFAULT_MODEL, DEFAULT_PROVIDER } from '~/utils/constants';
 
 const WORK_DIR = '/home/project';
 
@@ -20,8 +21,8 @@ describe('extractPropertiesFromMessage', () => {
   it('falls back to defaults when no markers are present', () => {
     const result = extractPropertiesFromMessage(userMessage('just do the thing'));
 
-    expect(result.model).toBe('claude-3-5-sonnet-latest');
-    expect(result.provider).toBe('OpenRouter');
+    expect(result.model).toBe(DEFAULT_MODEL);
+    expect(result.provider).toBe(DEFAULT_PROVIDER.name);
     expect(result.content).toBe('just do the thing');
   });
 
@@ -74,7 +75,7 @@ describe('extractPropertiesFromMessage', () => {
   it('does not treat a mid-message model mention as metadata', () => {
     const result = extractPropertiesFromMessage(userMessage('compare this to [Model: gpt-4o] behaviour'));
 
-    expect(result.model).toBe('claude-3-5-sonnet-latest');
+    expect(result.model).toBe(DEFAULT_MODEL);
     expect(result.content).toBe('compare this to [Model: gpt-4o] behaviour');
   });
 

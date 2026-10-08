@@ -36,7 +36,7 @@ export const PROVIDER_COMPLETION_LIMITS: Record<string, number> = {
  * These models use internal reasoning tokens and have different API parameter requirements
  */
 export function isReasoningModel(modelName: string): boolean {
-  return /^(o1|o3|gpt-5|.*\/o1|.*\/o3|deepseek-reasoner)/i.test(modelName);
+  return /^(o1|o3|gpt-5|deepseek-reasoner)/i.test(modelName);
 }
 
 // limits the number of model responses that can be returned in a single request

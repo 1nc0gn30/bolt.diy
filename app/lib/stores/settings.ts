@@ -91,8 +91,8 @@ const getInitialProviderSettings = (): ProviderSetting => {
     initialSettings[provider.name] = {
       ...provider,
       settings: {
-        // Local providers should be disabled by default except ZothLocal
-        enabled: provider.name === 'ZothLocal' || !LOCAL_PROVIDERS.includes(provider.name),
+        // Local providers should be disabled by default
+        enabled: !LOCAL_PROVIDERS.includes(provider.name),
       },
     };
   });

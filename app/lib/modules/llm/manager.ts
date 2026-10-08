@@ -11,7 +11,7 @@ const logger = createScopedLogger('LLMManager');
  * Providers exposed to the app. Every other provider in ./registry stays
  * unregistered, so its models never reach the model picker.
  */
-const ENABLED_PROVIDERS = new Set(['ZothLocal', 'Ollama', 'OpenRouter', 'Anthropic', 'OpenAI', 'Google']);
+const ENABLED_PROVIDERS = new Set(['Google', 'Anthropic', 'OpenAI', 'Deepseek', 'Groq', 'OpenRouter']);
 
 export class LLMManager {
   private static _instance: LLMManager;
@@ -217,11 +217,14 @@ export class LLMManager {
   }
 
   getDefaultProvider(): BaseProvider {
-    const envProvider = (this._env as any)?.DEFAULT_PROVIDER || 'Google';
-    const preferred = this._providers.get(envProvider) || this._providers.get('Google');
+    const envProvider = (this._env as any)?.DEFAULT_PROVIDER;
 
-    if (preferred) {
-      return preferred;
+    if (envProvider) {
+      const preferred = this._providers.get(envProvider);
+
+      if (preferred) {
+        return preferred;
+      }
     }
 
     const openRouter = this._providers.get('OpenRouter');

@@ -22,13 +22,12 @@ describe('LLMManager', () => {
   it('registers exactly the enabled providers', () => {
     const manager = LLMManager.getInstance({});
     const names = manager.getAllProviders().map((p) => p.name);
-    expect(names.sort()).toEqual(['Anthropic', 'Google', 'OpenAI', 'OpenRouter']);
+    expect(names.sort()).toEqual(['Anthropic', 'Deepseek', 'Google', 'Groq', 'OpenAI', 'OpenRouter']);
   });
 
   it('does not register providers outside the enabled set', () => {
     const manager = LLMManager.getInstance({});
     const names = manager.getAllProviders().map((p) => p.name);
-    expect(names).not.toContain('Groq');
     expect(names).not.toContain('Together');
     expect(names).not.toContain('Ollama');
   });
@@ -36,7 +35,7 @@ describe('LLMManager', () => {
   it('exposes each enabled provider via getProvider', () => {
     const manager = LLMManager.getInstance({});
 
-    for (const name of ['OpenRouter', 'Anthropic', 'OpenAI', 'Google']) {
+    for (const name of ['OpenRouter', 'Anthropic', 'OpenAI', 'Google', 'Deepseek', 'Groq']) {
       expect(manager.getProvider(name)).toBeDefined();
     }
   });

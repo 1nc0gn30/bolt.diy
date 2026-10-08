@@ -6,97 +6,97 @@ import type { ProviderInfo } from '~/types/model';
 import { classNames } from '~/utils/classNames';
 import { PROVIDER_LIST } from '~/utils/constants';
 
-export interface EnginePreset {
+export interface CloudModelPreset {
   id: string;
   name: string;
-  badge: string;
-  badgeType: 'local' | 'frontier' | 'reasoning' | 'fast';
-  icon: string;
   providerName: string;
   modelName: string;
+  badge: string;
+  badgeType: 'reasoning' | 'frontier' | 'fast' | 'flagship';
+  icon: string;
   description: string;
 }
 
-export const ENGINE_PRESETS: EnginePreset[] = [
+export const CLOUD_MODEL_PRESETS: CloudModelPreset[] = [
   {
-    id: 'agy-engine',
-    name: 'AGY Agent',
-    badge: 'LOCAL CLI',
-    badgeType: 'local',
-    icon: '⚡',
-    providerName: 'ZothLocal',
-    modelName: 'agy-engine',
-    description: 'Autonomous local CLI coding agent (Google Antigravity)',
-  },
-  {
-    id: 'hermes-agent',
-    name: 'Hermes 3',
-    badge: 'LOCAL CLI',
-    badgeType: 'local',
-    icon: '👑',
-    providerName: 'ZothLocal',
-    modelName: 'hermes-agent',
-    description: 'Nous Research Hermes 3 autonomous local agent',
-  },
-  {
-    id: 'claude-cli',
-    name: 'Claude Code',
-    badge: 'LOCAL CLI',
-    badgeType: 'local',
-    icon: '🧠',
-    providerName: 'ZothLocal',
-    modelName: 'claude-cli',
-    description: 'Anthropic Claude Code CLI agent',
-  },
-  {
-    id: 'qwen-coder',
-    name: 'Qwen Coder',
-    badge: 'LOCAL OLLAMA',
-    badgeType: 'local',
-    icon: '🛠️',
-    providerName: 'ZothLocal',
-    modelName: 'qwen2.5-coder:1.5b',
-    description: 'Ultra-fast local coding model via Ollama',
+    id: 'gemini-2-5-flash',
+    name: 'Gemini 2.5 Flash',
+    providerName: 'Google',
+    modelName: 'gemini-2.5-flash',
+    badge: '1M CONTEXT',
+    badgeType: 'fast',
+    icon: '🌟',
+    description: 'Google next-gen 1M token workhorse for rapid web development',
   },
   {
     id: 'claude-3-7-sonnet',
-    name: 'Claude 3.7',
-    badge: 'FRONTIER',
-    badgeType: 'frontier',
-    icon: '💎',
+    name: 'Claude 3.7 Sonnet',
     providerName: 'Anthropic',
     modelName: 'claude-3-7-sonnet-20250219',
-    description: 'Anthropic hybrid reasoning & coding frontier model',
+    badge: 'HYBRID',
+    badgeType: 'frontier',
+    icon: '💎',
+    description: 'Anthropic frontier hybrid reasoning & coding model',
+  },
+  {
+    id: 'claude-3-5-sonnet',
+    name: 'Claude 3.5 Sonnet',
+    providerName: 'Anthropic',
+    modelName: 'claude-3-5-sonnet-20241022',
+    badge: 'CODING',
+    badgeType: 'frontier',
+    icon: '🧠',
+    description: 'Anthropic industry-standard code architecture model',
   },
   {
     id: 'o3-mini',
-    name: 'o3-mini',
+    name: 'OpenAI o3-mini',
+    providerName: 'OpenAI',
+    modelName: 'o3-mini',
     badge: 'REASONING',
     badgeType: 'reasoning',
     icon: '⚡',
-    providerName: 'OpenAI',
-    modelName: 'o3-mini',
-    description: 'OpenAI high-speed reasoning model',
+    description: 'OpenAI high-speed reasoning model for coding & math',
   },
   {
     id: 'deepseek-r1',
     name: 'DeepSeek R1',
+    providerName: 'Deepseek',
+    modelName: 'deepseek-reasoner',
     badge: 'REASONING',
     badgeType: 'reasoning',
     icon: '🚀',
-    providerName: 'Deepseek',
-    modelName: 'deepseek-reasoner',
-    description: 'DeepSeek frontier reasoning model',
+    description: 'DeepSeek frontier open-weights reasoning model',
   },
   {
-    id: 'gemini-2-5-flash',
-    name: 'Gemini 2.5',
-    badge: '1M CONTEXT',
+    id: 'deepseek-v3',
+    name: 'DeepSeek V3',
+    providerName: 'Deepseek',
+    modelName: 'deepseek-chat',
+    badge: '671B MOE',
+    badgeType: 'frontier',
+    icon: '🌌',
+    description: 'DeepSeek 671B parameter Mixture-of-Experts architecture',
+  },
+  {
+    id: 'gpt-4o',
+    name: 'GPT-4o',
+    providerName: 'OpenAI',
+    modelName: 'gpt-4o',
+    badge: 'FLAGSHIP',
+    badgeType: 'flagship',
+    icon: '⚡',
+    description: 'OpenAI flagship multimodal intelligence',
+  },
+  {
+    id: 'groq-llama',
+    name: 'Groq Llama 3.3',
+    providerName: 'Groq',
+    modelName: 'llama-3.3-70b-versatile',
+    badge: 'ULTRA-FAST LPU',
     badgeType: 'fast',
-    icon: '🌟',
-    providerName: 'Google',
-    modelName: 'gemini-2.5-flash',
-    description: 'Google next-gen 1M token workhorse for rapid web development',
+    icon: '⚡',
+    description: 'Ultra-low latency LPU cloud inference via Groq',
   },
 ];
 
@@ -526,18 +526,18 @@ export const ModelSelector = ({
   }, [providerList, provider, setProvider, modelList, setModel]);
 
   const isCurrentPreset = useMemo(() => {
-    return ENGINE_PRESETS.some((p) => p.providerName === provider?.name && p.modelName === model);
+    return CLOUD_MODEL_PRESETS.some((p) => p.providerName === provider?.name && p.modelName === model);
   }, [provider?.name, model]);
 
   const activePreset = useMemo(() => {
-    return ENGINE_PRESETS.find((p) => p.providerName === provider?.name && p.modelName === model);
+    return CLOUD_MODEL_PRESETS.find((p) => p.providerName === provider?.name && p.modelName === model);
   }, [provider?.name, model]);
 
   const [showDetailedSelector, setShowDetailedSelector] = useState(false);
   const effectiveShowDetailed = showDetailedSelector || !isCurrentPreset;
 
   const handleSelectPreset = useCallback(
-    (preset: EnginePreset) => {
+    (preset: CloudModelPreset) => {
       let targetProvider = providerList.find((p) => p.name === preset.providerName);
 
       if (!targetProvider) {
@@ -568,83 +568,87 @@ export const ModelSelector = ({
 
   return (
     <div className="flex flex-col gap-2 mb-2">
-      {/* 1-Click Fast Engine Switcher Strip */}
-      <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-bolt-elements-background-depth-2/80 border border-bolt-elements-borderColor shadow-sm backdrop-blur">
-        <div className="flex items-center justify-between text-xs px-1">
+      {/* Frontier Cloud Models Strip */}
+      <div className="flex flex-col gap-2 p-2.5 rounded-xl bg-bolt-elements-background-depth-2/90 border border-bolt-elements-borderColor shadow-sm backdrop-blur">
+        {/* Header & Controls */}
+        <div className="flex items-center justify-between text-xs px-0.5">
           <div className="flex items-center gap-2">
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
             </span>
             <span className="font-semibold text-bolt-elements-textPrimary tracking-wide uppercase text-[10px]">
-              AI Engine Presets
-            </span>
-            <span className="text-bolt-elements-textTertiary">•</span>
-            <span className="text-[11px] text-bolt-elements-textSecondary truncate max-w-[180px] sm:max-w-none">
-              Active:{' '}
-              <strong className="text-amber-400 font-mono">
-                {activePreset ? activePreset.name : `${provider?.name || 'Unknown'} / ${model || 'None'}`}
-              </strong>
+              Frontier Cloud AI Models
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setShowDetailedSelector(!showDetailedSelector)}
-            className={classNames(
-              'flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer',
-              effectiveShowDetailed
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
-            )}
-            title="Toggle full provider and model search (540+ models)"
-          >
-            <span className="i-ph:sliders-horizontal text-xs" />
-            <span>{effectiveShowDetailed ? 'Hide Detailed' : 'All 540+ Models'}</span>
-            <span
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-bolt-elements-textSecondary hidden sm:inline">
+              Selected:{' '}
+              <strong className="text-[#D4AF37] font-mono">{activePreset?.name || model || 'Custom Model'}</strong>{' '}
+              <span className="text-[10px] text-bolt-elements-textTertiary">({provider?.name || 'Cloud'})</span>
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setShowDetailedSelector(!showDetailedSelector)}
               className={classNames(
-                'i-ph:caret-down text-[10px] transition-transform',
-                effectiveShowDetailed ? 'rotate-180' : '',
+                'flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer',
+                effectiveShowDetailed
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
               )}
-            />
-          </button>
+              title="Toggle full provider and model search (540+ models)"
+            >
+              <span className="i-ph:sliders-horizontal text-xs" />
+              <span>{effectiveShowDetailed ? 'Hide Detailed' : 'All 540+ Models'}</span>
+              <span
+                className={classNames(
+                  'i-ph:caret-down text-[10px] transition-transform',
+                  effectiveShowDetailed ? 'rotate-180' : '',
+                )}
+              />
+            </button>
+          </div>
         </div>
 
-        {/* Horizontal Pill Strip */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 sm:scrollbar-none [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor">
-          {ENGINE_PRESETS.map((preset) => {
-            const isActive = provider?.name === preset.providerName && model === preset.modelName;
+        {/* Cloud Model Preset Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:scrollbar-none [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor">
+          {CLOUD_MODEL_PRESETS.map((preset) => {
+            const isPresetActive = provider?.name === preset.providerName && model === preset.modelName;
 
             return (
               <button
                 key={preset.id}
                 type="button"
                 onClick={() => handleSelectPreset(preset)}
-                title={`${preset.name}: ${preset.description}`}
+                title={preset.description}
                 className={classNames(
-                  'group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all flex-shrink-0 cursor-pointer',
-                  isActive
-                    ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/60 shadow-[0_0_12px_rgba(212,175,55,0.25)] ring-1 ring-[#D4AF37]/40'
-                    : 'bg-bolt-elements-prompt-background hover:bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/70 hover:border-bolt-elements-borderColorHover',
+                  'group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 cursor-pointer',
+                  isPresetActive
+                    ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/70 shadow-[0_0_12px_rgba(212,175,55,0.25)] font-semibold'
+                    : 'bg-bolt-elements-prompt-background hover:bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
                 )}
               >
                 <span className="text-sm">{preset.icon}</span>
-                <span className="font-semibold">{preset.name}</span>
+                <span>{preset.name}</span>
                 <span
                   className={classNames(
-                    'text-[9px] px-1 py-0.2 rounded font-mono uppercase tracking-wider',
-                    preset.badgeType === 'local'
-                      ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      : preset.badgeType === 'reasoning'
-                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                        : preset.badgeType === 'frontier'
-                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30',
+                    'text-[9px] px-1 py-0.2 rounded font-mono uppercase border',
+                    preset.badgeType === 'reasoning'
+                      ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                      : preset.badgeType === 'fast'
+                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        : preset.badgeType === 'flagship'
+                          ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                          : 'bg-amber-500/15 text-amber-300 border-amber-500/30',
                   )}
                 >
                   {preset.badge}
                 </span>
-                {isActive && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />}
+                {isPresetActive && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+                )}
               </button>
             );
           })}

@@ -203,24 +203,38 @@ export default class ZothLocalProvider extends BaseProvider {
     },
     {
       name: 'hermes-agent',
-      label: '👑 Nous Research Hermes 3 Agent (OneShot Fast)',
+      label: '👑 Hermes Agent (Nous Research Default / Hermes 3)',
       provider: 'ZothLocal',
       maxTokenAllowed: 65536,
       maxCompletionTokens: 8192,
     },
     {
-      name: 'hermes-coder',
-      label: '💻 Hermes 3 Coder Specialist',
+      name: 'hermes:qwen2.5-coder:1.5b',
+      label: '👑 Hermes Agent → Qwen 2.5 Coder (Local Ollama)',
       provider: 'ZothLocal',
       maxTokenAllowed: 65536,
       maxCompletionTokens: 8192,
     },
     {
-      name: 'hermes-moa',
-      label: '🤝 Hermes Mixture-of-Agents Coordinator',
+      name: 'hermes:anthropic/claude-3-7-sonnet-20250219',
+      label: '👑 Hermes Agent → Claude 3.7 Sonnet',
       provider: 'ZothLocal',
-      maxTokenAllowed: 65536,
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 64000,
+    },
+    {
+      name: 'hermes:deepseek/deepseek-reasoner',
+      label: '👑 Hermes Agent → DeepSeek R1',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 64000,
       maxCompletionTokens: 8192,
+    },
+    {
+      name: 'hermes:openai/o3-mini',
+      label: '👑 Hermes Agent → OpenAI o3-mini',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 64000,
     },
     {
       name: 'claude-cli',
@@ -300,35 +314,26 @@ export default class ZothLocalProvider extends BaseProvider {
       return createCliLanguageModel('claude-cli', 'claude', (promptText) => ['-p', promptText]);
     }
 
-    if (model === 'hermes-agent') {
-      return createCliLanguageModel('hermes-agent', 'hermes', (promptText) => [
-        '-z',
-        promptText,
-        '--ignore-rules',
-        '--yolo',
-      ]);
-    }
+    if (model.startsWith('hermes:') || model === 'hermes-agent' || model === 'hermes-coder' || model === 'hermes-moa') {
+      let targetModel = '';
 
-    if (model === 'hermes-coder') {
-      return createCliLanguageModel('hermes-coder', 'hermes', (promptText) => [
-        '-z',
-        promptText,
-        '--ignore-rules',
-        '--yolo',
-        '-m',
-        'qwen2.5-coder:1.5b',
-      ]);
-    }
+      if (model.startsWith('hermes:')) {
+        targetModel = model.replace('hermes:', '');
+      } else if (model === 'hermes-coder') {
+        targetModel = 'qwen2.5-coder:1.5b';
+      } else if (model === 'hermes-moa') {
+        targetModel = 'llama3.2:1b';
+      }
 
-    if (model === 'hermes-moa') {
-      return createCliLanguageModel('hermes-moa', 'hermes', (promptText) => [
-        '-z',
-        promptText,
-        '--ignore-rules',
-        '--yolo',
-        '-m',
-        'llama3.2:1b',
-      ]);
+      return createCliLanguageModel(model, 'hermes', (promptText) => {
+        const args = ['-z', promptText, '--ignore-rules', '--yolo'];
+
+        if (targetModel) {
+          args.push('-m', targetModel);
+        }
+
+        return args;
+      });
     }
 
     // Default: Local Ollama on 127.0.0.1:11434 via OpenAI-compatible endpoint

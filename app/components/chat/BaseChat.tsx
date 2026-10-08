@@ -402,13 +402,13 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 <ClientOnly>
                   {() => (
                     <ZothBentoFeatures
-                      onSelectLocalEngine={() => {
-                        const localProv = (providerList || PROVIDER_LIST)?.find((p: any) => p.name === 'ZothLocal');
+                      onSelectCloudModel={() => {
+                        const googleProv = (providerList || PROVIDER_LIST)?.find((p: any) => p.name === 'Google');
 
-                        if (localProv) {
-                          setProvider?.(localProv as any);
-                          setModel?.('agy-engine');
-                          toast.success('⚡ ZothOS Local Engine Active: Google Antigravity (AGY)');
+                        if (googleProv) {
+                          setProvider?.(googleProv as any);
+                          setModel?.('gemini-2.5-flash');
+                          toast.success('🌟 Frontier Cloud Model Active: Google Gemini 2.5 Flash');
                         }
                       }}
                       onSelectStarter={() => {
