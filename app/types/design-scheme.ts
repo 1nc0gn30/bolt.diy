@@ -12,8 +12,8 @@ export interface DesignScheme {
 export const defaultDesignScheme: DesignScheme = {
   palette: {
     primary: '#D4AF37',
-    secondary: '#00F0FF',
-    accent: '#F5E6AB',
+    secondary: '#D4AF37',
+    accent: '#D4AF37',
     background: '#08080B',
     surface: '#121218',
     text: '#FFFFFF',
@@ -24,12 +24,12 @@ export const defaultDesignScheme: DesignScheme = {
     error: '#ef4444',
   },
   features: ['rounded'],
-  font: ['syne', 'space-grotesk'],
+  font: ['space-grotesk', 'inter'],
   framework: 'vite-react',
   uiLibrary: 'shadcn-ui',
   animationLibrary: 'framer-motion',
-  commodities: ['conic-border-beam', 'aurora-mesh-gradient'],
-  typographyPairing: 'syne-space-grotesk',
+  commodities: [],
+  typographyPairing: 'space-grotesk-inter',
 };
 
 export const paletteRoles = [

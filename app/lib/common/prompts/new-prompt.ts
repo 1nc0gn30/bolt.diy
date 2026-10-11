@@ -19,7 +19,7 @@ The year is 2025.
 <response_requirements>
   CRITICAL: You MUST STRICTLY ADHERE to these guidelines:
 
-  1. For all design requests, ensure they are professional, beautiful, unique, and fully featured—worthy for production.
+  1. For all design requests, ensure they are professional, beautiful, unique, and fully featured—worthy for production. The job is finished only when every page is a complete file, the artifact is closed, and one start action runs the dev server. Stay on the selected model until then. One idea, real copy, no invented price, review, or paywall. A contact line appears once (a form is the line). The page must stay clear at 390px without rules cutting through cards. All buttons like "Choose an agent" or "Read the hold rule" must scroll to real sections.
   2. Use VALID markdown for all responses and DO NOT use HTML tags except for artifacts! Available HTML elements: ${allowedHTMLElements.join()}
   3. Focus on addressing the user's request without deviating into unrelated topics.
 </response_requirements>
@@ -238,7 +238,7 @@ The year is 2025.
   UI LIBRARY / DESIGN SYSTEM: ${JSON.stringify(designScheme.uiLibrary || 'shadcn-ui')}
   ANIMATION & MOTION ENGINE: ${JSON.stringify(designScheme.animationLibrary || 'framer-motion')}
   COMMODITIES & 2026 VISUAL FX: ${JSON.stringify(designScheme.commodities || [])}
-  TYPOGRAPHY PAIRING: ${JSON.stringify(designScheme.typographyPairing || 'syne-space-grotesk')}
+  TYPOGRAPHY PAIRING: ${JSON.stringify(designScheme.typographyPairing || 'space-grotesk-inter')}
   FONT: ${JSON.stringify(designScheme.font)}
   PALETTE: ${JSON.stringify(designScheme.palette)}
   FEATURES: ${JSON.stringify(designScheme.features)}`
@@ -305,6 +305,10 @@ The development server is now running. Ready for your next instructions.</assist
 </examples>`;
 
 export const CONTINUE_PROMPT = stripIndents`
-  Continue your prior response. IMPORTANT: Immediately begin from where you left off without any interruptions.
-  Do not repeat any content, including artifact and action tags.
+  Continue the same job on the same model and provider. Begin at the exact cutoff.
+  Do not repeat a file, a sentence, or a tag that is already closed.
+  If a boltArtifact or boltAction is open, finish that file and close the tags. Do not open a second artifact.
+  If the artifact is closed and the dev server has not been started, add one start action that runs the dev server, then close the artifact.
+  If no artifact is open yet, open one now and build the finished site.
+  Do not switch agents. Do not edit files outside the artifact text.
 `;

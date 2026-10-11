@@ -174,6 +174,182 @@ const getGitHubRepoContent = async (repoName: string): Promise<{ name: string; p
   }
 };
 
+const getFallbackViteTemplate = (): { name: string; path: string; content: string }[] => [
+  {
+    name: 'package.json',
+    path: 'package.json',
+    content: JSON.stringify(
+      {
+        name: 'zoth-app',
+        private: true,
+        version: '0.0.0',
+        type: 'module',
+        scripts: {
+          dev: 'vite',
+          build: 'tsc && vite build',
+          preview: 'vite preview',
+        },
+        dependencies: {
+          react: '^18.3.1',
+          'react-dom': '^18.3.1',
+          'lucide-react': '^0.344.0',
+          clsx: '^2.1.1',
+          'tailwind-merge': '^2.5.2',
+          'framer-motion': '^11.5.4',
+        },
+        devDependencies: {
+          '@types/react': '^18.3.5',
+          '@types/react-dom': '^18.3.0',
+          '@vitejs/plugin-react': '^4.3.1',
+          autoprefixer: '^10.4.20',
+          postcss: '^8.4.47',
+          tailwindcss: '^3.4.11',
+          typescript: '^5.5.3',
+          vite: '^5.4.2',
+        },
+      },
+      null,
+      2,
+    ),
+  },
+  {
+    name: 'vite.config.ts',
+    path: 'vite.config.ts',
+    content: `import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  optimizeDeps: {
+    exclude: ['lucide-react'],
+  },
+});`,
+  },
+  {
+    name: 'index.html',
+    path: 'index.html',
+    content: `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zoth WebGen Foundry App</title>
+  </head>
+  <body class="bg-[#08080B] text-white">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>`,
+  },
+  {
+    name: 'main.tsx',
+    path: 'src/main.tsx',
+    content: `import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);`,
+  },
+  {
+    name: 'App.tsx',
+    path: 'src/App.tsx',
+    content: `import React, { useState } from 'react';
+import { Sparkles, Layers, ShieldCheck } from 'lucide-react';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('overview');
+
+  return (
+    <div className="min-h-screen bg-[#08080B] text-white flex flex-col items-center justify-center p-6">
+      <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-white/[0.03] p-8 backdrop-blur-xl shadow-2xl text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-mono mb-4">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Zoth WebGen Ready</span>
+        </div>
+        <h1 className="text-3xl font-bold tracking-tight mb-3">Architecting Your Vision</h1>
+        <p className="text-neutral-400 text-sm mb-6 leading-relaxed">
+          Your in-browser Vite + React application is initialized. Building full component layout and interactive state...
+        </p>
+      </div>
+    </div>
+  );
+}`,
+  },
+  {
+    name: 'index.css',
+    path: 'src/index.css',
+    content: `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}`,
+  },
+  {
+    name: 'tailwind.config.js',
+    path: 'tailwind.config.js',
+    content: `/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        primary: '#D4AF37',
+        background: '#08080B',
+      },
+    },
+  },
+  plugins: [],
+};`,
+  },
+  {
+    name: 'postcss.config.js',
+    path: 'postcss.config.js',
+    content: `export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};`,
+  },
+  {
+    name: 'tsconfig.json',
+    path: 'tsconfig.json',
+    content: JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2020',
+          useDefineForClassFields: true,
+          lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+          module: 'ESNext',
+          skipLibCheck: true,
+          moduleResolution: 'bundler',
+          allowImportingTsExtensions: true,
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          jsx: 'react-jsx',
+          strict: true,
+          noUnusedLocals: true,
+          noUnusedParameters: true,
+          noFallthroughCasesInSwitch: true,
+        },
+        include: ['src'],
+      },
+      null,
+      2,
+    ),
+  },
+];
+
 export async function getTemplates(templateName: string, title?: string) {
   const template = STARTER_TEMPLATES.find((t) => t.name == templateName);
 
@@ -182,7 +358,14 @@ export async function getTemplates(templateName: string, title?: string) {
   }
 
   const githubRepo = template.githubRepo;
-  const files = await getGitHubRepoContent(githubRepo);
+  let files: { name: string; path: string; content: string }[] = [];
+
+  try {
+    files = await getGitHubRepoContent(githubRepo);
+  } catch (error) {
+    console.warn(`Remote GitHub template fetch failed for ${githubRepo}, using built-in high-speed fallback template`);
+    files = getFallbackViteTemplate();
+  }
 
   let filteredFiles = files;
 

@@ -18,6 +18,7 @@ import { useMCPStore } from '~/lib/stores/mcp';
 import { streamingState } from '~/lib/stores/streaming';
 import { supabaseConnection } from '~/lib/stores/supabase';
 import { workbenchStore } from '~/lib/stores/workbench';
+import { studioTelemetryAtom } from '~/lib/stores/studioStore';
 import type { LlmErrorAlertType } from '~/types/actions';
 import { defaultDesignScheme, type DesignScheme } from '~/types/design-scheme';
 import type { ProviderInfo } from '~/types/model';
@@ -136,6 +137,7 @@ export const ChatImpl = memo(
     const [chatMode, setChatMode] = useState<'discuss' | 'build'>('build');
     const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
     const mcpSettings = useMCPStore((state) => state.settings);
+    const streamStartRef = useRef<number>(0);
 
     const {
       messages,
@@ -160,6 +162,14 @@ export const ChatImpl = memo(
         contextOptimization: contextOptimizationEnabled,
         chatMode,
         designScheme,
+        studioSettings:
+          typeof window !== 'undefined'
+            ? {
+                temperature: parseFloat(localStorage.getItem('zoth_studio_temperature') || '0.7'),
+                customInstructions: localStorage.getItem('zoth_studio_custom_instructions') || undefined,
+                systemPreset: localStorage.getItem('zoth_studio_system_preset') || 'avant-garde-2026',
+              }
+            : undefined,
         supabase: {
           isConnected: supabaseConn.isConnected,
           hasSelectedProject: !!selectedProject,
@@ -173,11 +183,27 @@ export const ChatImpl = memo(
       sendExtraMessageFields: true,
       onError: (e) => {
         setFakeLoading(false);
+        studioTelemetryAtom.set({
+          status: 'error',
+          totalTokens: 0,
+          tokensPerSec: 0,
+          latencyMs: 0,
+        });
         handleError(e, 'chat');
       },
       onFinish: (message, response) => {
         const usage = response.usage;
         setData(undefined);
+
+        const durationSec = Math.max(0.1, (Date.now() - (streamStartRef.current || Date.now() - 1000)) / 1000);
+        const total = (usage?.promptTokens || 0) + (usage?.completionTokens || 0);
+        const tps = Math.round((usage?.completionTokens || 0) / durationSec);
+        studioTelemetryAtom.set({
+          status: 'complete',
+          totalTokens: total,
+          tokensPerSec: tps,
+          latencyMs: Math.round(durationSec * 1000),
+        });
 
         if (usage) {
           console.log('Token usage:', usage);
@@ -412,6 +438,9 @@ export const ChatImpl = memo(
       if (!messageContent?.trim()) {
         return;
       }
+
+      streamStartRef.current = Date.now();
+      studioTelemetryAtom.set({ status: 'streaming', latencyMs: 0, totalTokens: 0, tokensPerSec: 0 });
 
       if (isLoading) {
         abort();

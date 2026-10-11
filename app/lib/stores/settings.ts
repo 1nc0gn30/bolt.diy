@@ -91,8 +91,9 @@ const getInitialProviderSettings = (): ProviderSetting => {
     initialSettings[provider.name] = {
       ...provider,
       settings: {
-        // Local providers should be disabled by default
-        enabled: !LOCAL_PROVIDERS.includes(provider.name),
+        // Ollama and LM Studio stay off until a local server is configured.
+        // ZothLocal is the on-machine agent row and is ready without an API key.
+        enabled: provider.name === 'ZothLocal' || !LOCAL_PROVIDERS.includes(provider.name),
       },
     };
   });

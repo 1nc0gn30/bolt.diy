@@ -21,7 +21,7 @@ export function HeaderActionButtons({ chatStarted: _chatStarted }: HeaderActionB
 
       {/* Debug Tools */}
       {shouldShowButtons && (
-        <div className="flex border border-bolt-elements-borderColor rounded-md overflow-hidden text-sm">
+        <div className="hidden sm:flex border border-bolt-elements-borderColor rounded-md overflow-hidden text-sm">
           <button
             onClick={() => window.open('https://github.com/1nc0gn30', '_blank')}
             className="rounded-l-md items-center justify-center [&:is(:disabled,.disabled)]:cursor-not-allowed [&:is(:disabled,.disabled)]:opacity-60 px-3 py-1.5 text-xs bg-accent-500 text-white hover:text-bolt-elements-item-contentAccent [&:not(:disabled,.disabled)]:hover:bg-bolt-elements-button-primary-backgroundHover outline-accent-500 flex gap-1.5"

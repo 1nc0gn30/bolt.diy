@@ -20,6 +20,9 @@ import type { DesignScheme } from '~/types/design-scheme';
 import type { ProviderInfo } from '~/types/model';
 import { classNames } from '~/utils/classNames';
 import { PROVIDER_LIST } from '~/utils/constants';
+import { NoahAestheticStrip } from './NoahAestheticStrip';
+import { NoahGenerationStepper } from './NoahGenerationStepper';
+import { isAIStudioOpenAtom } from '~/lib/stores/studioStore';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;
@@ -168,6 +171,18 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           </button>
         </div>
       )}
+      <ClientOnly>
+        {() => (
+          <>
+            <NoahGenerationStepper isStreaming={props.isStreaming} activeModel={props.model} />
+            <NoahAestheticStrip
+              designScheme={props.designScheme}
+              setDesignScheme={props.setDesignScheme}
+              onOpenAIStudio={() => isAIStudioOpenAtom.set(true)}
+            />
+          </>
+        )}
+      </ClientOnly>
       <div
         className={classNames('relative shadow-xs border border-bolt-elements-borderColor backdrop-blur rounded-lg')}
       >

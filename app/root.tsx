@@ -55,12 +55,6 @@ const schemaJsonLd = {
       operatingSystem: 'All',
       description:
         'Autonomous in-browser full-stack application architect and WebContainer runtime by Neal Frazier Tech.',
-      offers: {
-        '@type': 'Offer',
-        price: '19.00',
-        priceCurrency: 'USD',
-        url: 'https://buy.stripe.com/cNiaEWaEldKo6Tm1C0fw40D',
-      },
       creator: {
         '@type': 'Organization',
         name: 'Neal Frazier Tech',
@@ -80,10 +74,10 @@ const schemaJsonLd = {
         },
         {
           '@type': 'Question',
-          name: 'What payment options are accepted for Pro Lifetime Access?',
+          name: 'How does Zoth WebGen keep generations running?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'We accept Credit Cards, Apple Pay, and Google Pay via Stripe ($19 lifetime), as well as Solana (SOL / USDC) via DePay Web3 widgets.',
+            text: 'WebGen connects directly to your chosen local harnesses or frontier models and runs until the site artifact is closed and the dev server starts.',
           },
         },
       ],

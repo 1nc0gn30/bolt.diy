@@ -25,7 +25,7 @@ export interface AgyTerminalModalProps {
   onInjectPrompt?: (text: string) => void;
 }
 
-type EngineFilter = 'all' | 'agy' | 'hermes' | 'claude' | 'ollama' | 'system';
+type EngineFilter = 'all' | 'agy' | 'grok' | 'hermes' | 'opencode' | 'cline' | 'aider' | 'claude' | 'ollama' | 'system';
 
 export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onClose, onInjectPrompt }) => {
   const [command, setCommand] = useState('');
@@ -218,7 +218,11 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
         'agy models',
         'agy agent',
         'agy mcp list',
+        'grok models',
         'hermes model',
+        'opencode --version',
+        'cline version',
+        'aider --version',
         'claude',
         'ollama list',
         'git status',
@@ -280,11 +284,30 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
     all: [
       { label: 'agy models', cmd: 'agy models' },
       { label: 'agy agent', cmd: 'agy agent' },
-      { label: 'hermes --help', cmd: 'hermes --help' },
-      { label: 'hermes model', cmd: 'hermes model' },
+      { label: 'grok models', cmd: 'grok models' },
+      { label: 'hermes --version', cmd: 'hermes --version' },
+      { label: 'opencode --version', cmd: 'opencode --version' },
+      { label: 'cline version', cmd: 'cline version' },
+      { label: 'aider --version', cmd: 'aider --version' },
       { label: 'claude --version', cmd: 'claude --version' },
       { label: 'ollama list', cmd: 'ollama list' },
       { label: 'git status', cmd: 'git status' },
+    ],
+    grok: [
+      { label: 'grok --version', cmd: 'grok --version' },
+      { label: 'grok models', cmd: 'grok models' },
+      { label: 'grok doctor', cmd: 'grok doctor' },
+    ],
+    opencode: [
+      { label: 'opencode --version', cmd: 'opencode --version' },
+    ],
+    cline: [
+      { label: 'cline version', cmd: 'cline version' },
+      { label: 'cline config', cmd: 'cline config' },
+      { label: 'cline doctor', cmd: 'cline doctor' },
+    ],
+    aider: [
+      { label: 'aider --version', cmd: 'aider --version' },
     ],
     agy: [
       { label: 'agy --help', cmd: 'agy --help' },
@@ -335,14 +358,13 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
                 </span>
               </div>
               <DialogDescription className="text-xs sm:text-sm text-gray-400 mt-1 font-mono">
-                Execute Antigravity CLI (agy), Nous Hermes, Claude Code, and Linux host commands directly from Zoth
-                WebGen.
+                Run the same Zoth OS agents from here: Grok CLI, Hermes, OpenCode, Cline, Aider, AGY, and Claude Code.
               </DialogDescription>
             </div>
 
             {/* Local Engine Status Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-mono">
-              {tools.slice(0, 4).map((t: LocalTool) => (
+              {tools.map((t: LocalTool) => (
                 <div
                   key={t.command}
                   className={`px-2 py-1 rounded-md border flex items-center gap-1.5 whitespace-nowrap ${
@@ -364,8 +386,12 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
             <span className="text-gray-500 whitespace-nowrap mr-1">Engines:</span>
             {[
               { id: 'all', label: 'All Engines', icon: 'i-ph:command' },
+              { id: 'grok', label: 'Grok CLI', icon: 'i-ph:star' },
+              { id: 'hermes', label: 'Hermes', icon: 'i-ph:crown' },
+              { id: 'opencode', label: 'OpenCode', icon: 'i-ph:code' },
+              { id: 'cline', label: 'Cline', icon: 'i-ph:path' },
+              { id: 'aider', label: 'Aider', icon: 'i-ph:pencil' },
               { id: 'agy', label: 'AGY CLI', icon: 'i-ph:lightning' },
-              { id: 'hermes', label: 'Hermes Agent', icon: 'i-ph:crown' },
               { id: 'claude', label: 'Claude Code', icon: 'i-ph:brain' },
               { id: 'ollama', label: 'Ollama Local', icon: 'i-ph:cpu' },
               { id: 'system', label: 'Git & OS', icon: 'i-ph:gear' },

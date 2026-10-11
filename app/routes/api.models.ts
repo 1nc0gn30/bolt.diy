@@ -14,14 +14,19 @@ let cachedProviders: ProviderInfo[] | null = null;
 let cachedDefaultProvider: ProviderInfo | null = null;
 
 function getProviderInfo(llmManager: LLMManager) {
-  if (!cachedProviders) {
-    cachedProviders = llmManager.getAllProviders().map((provider) => ({
+  const live = llmManager.getAllProviders();
+  const liveKey = live.map((provider) => provider.name).join(',');
+  const cachedKey = cachedProviders?.map((provider) => provider.name).join(',') || '';
+
+  if (!cachedProviders || cachedKey !== liveKey) {
+    cachedProviders = live.map((provider) => ({
       name: provider.name,
       staticModels: provider.staticModels,
       getApiKeyLink: provider.getApiKeyLink,
       labelForGetApiKey: provider.labelForGetApiKey,
       icon: provider.icon,
     }));
+    cachedDefaultProvider = null;
   }
 
   if (!cachedDefaultProvider) {

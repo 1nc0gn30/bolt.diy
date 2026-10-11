@@ -65,6 +65,11 @@ export async function streamText(props: {
   messageSliceId?: number;
   chatMode?: 'discuss' | 'build';
   designScheme?: DesignScheme;
+  studioSettings?: {
+    temperature?: number;
+    customInstructions?: string;
+    systemPreset?: string;
+  };
 }) {
   const {
     messages,
@@ -79,6 +84,7 @@ export async function streamText(props: {
     summary,
     chatMode,
     designScheme,
+    studioSettings,
   } = props;
 
   let currentModel = DEFAULT_MODEL;
@@ -128,18 +134,20 @@ export async function streamText(props: {
     modelDetails = modelsList.find((m) => m.name === currentModel);
 
     if (!modelDetails) {
-      // Check if it's a Google provider and the model name looks like it might be incorrect
-      if (provider.name === 'Google' && currentModel.includes('2.5')) {
-        throw new Error(
-          `Model "${currentModel}" not found. Gemini 2.5 Pro doesn't exist. Available Gemini models include: gemini-1.5-pro, gemini-2.0-flash, gemini-1.5-flash. Please select a valid model.`,
-        );
-      }
+      const names = modelsList
+        .slice(0, 8)
+        .map((model) => model.name)
+        .join(', ');
 
-      // Fallback to first model with warning
-      logger.warn(
-        `MODEL [${currentModel}] not found in provider [${provider.name}]. Falling back to first model. ${modelsList[0].name}`,
-      );
-      modelDetails = modelsList[0];
+      // Fallback model details if model name exists on provider
+      modelDetails = {
+        name: currentModel,
+        label: currentModel,
+        provider: provider.name,
+        maxTokenAllowed: 1048576,
+        maxCompletionTokens: 65536,
+      };
+      logger.warn(`Model "${currentModel}" not explicitly listed in static models; using dynamic fallback. Available: ${names}`);
     }
   }
 
@@ -164,6 +172,10 @@ export async function streamText(props: {
         credentials: options?.supabaseConnection?.credentials || undefined,
       },
     }) ?? getSystemPrompt();
+
+  if (studioSettings?.customInstructions?.trim()) {
+    systemPrompt = `${systemPrompt}\n\nDEVELOPER SYSTEM INSTRUCTIONS (AI STUDIO):\n${studioSettings.customInstructions.trim()}`;
+  }
 
   if (chatMode === 'build' && contextFiles && contextOptimization) {
     const codeContext = createFilesContext(contextFiles, true);
@@ -325,7 +337,7 @@ export async function streamText(props: {
     ...filteredOptions,
 
     // Set temperature to 1 for reasoning models (required by OpenAI API)
-    ...(isReasoning ? { temperature: 1 } : {}),
+    ...(isReasoning ? { temperature: 1 } : studioSettings?.temperature !== undefined ? { temperature: studioSettings.temperature } : {}),
   };
 
   // DEBUG: Log final streaming parameters

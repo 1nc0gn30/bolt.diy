@@ -23,8 +23,6 @@ import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import { SupabaseChatAlert } from '~/components/chat/SupabaseAlert';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
 import DeployChatAlert from '~/components/deploy/DeployAlert';
-import { ProPaywallModal } from '~/components/monetization/ProPaywallModal';
-import { SalesFunnelBanner } from '~/components/monetization/SalesFunnelBanner';
 import { KineticHeroCanvas } from '~/components/motion/KineticHeroCanvas';
 import { MotionShowreelModal } from '~/components/motion/MotionShowreelModal';
 import { Menu } from '~/components/sidebar/Menu.client';
@@ -398,7 +396,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     Architect, generate, and run production-grade web applications in real-time.
                   </p>
                 </div>
-                <ClientOnly>{() => <SalesFunnelBanner />}</ClientOnly>
                 <ClientOnly>
                   {() => (
                     <ZothBentoFeatures
@@ -607,7 +604,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             )}
           </ClientOnly>
         </div>
-        <ClientOnly>{() => <ProPaywallModal />}</ClientOnly>
         <ClientOnly>
           {() => <MotionShowreelModal isOpen={showreelOpen} onClose={() => setShowreelOpen(false)} />}
         </ClientOnly>

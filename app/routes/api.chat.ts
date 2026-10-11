@@ -1,12 +1,12 @@
-import { type ActionFunctionArgs } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { createDataStream, generateId } from 'ai';
-import { MAX_RESPONSE_SEGMENTS, MAX_TOKENS, type FileMap } from '~/lib/.server/llm/constants';
+import type { FileMap } from '~/lib/.server/llm/constants';
 import { createSummary } from '~/lib/.server/llm/create-summary';
 import { createReasoningRewriteTransform } from '~/lib/.server/llm/data-stream-parts';
+import { MAX_BUILD_SEGMENTS, MAX_UNSTARTED_PASSES, responseNeedsContinue } from '~/lib/.server/llm/response-continue';
 import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import { StreamRecoveryManager } from '~/lib/.server/llm/stream-recovery';
 import { streamText, type Messages, type StreamingOptions } from '~/lib/.server/llm/stream-text';
-import SwitchableStream from '~/lib/.server/llm/switchable-stream';
 import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
 import { CONTINUE_PROMPT } from '~/lib/common/prompts/prompts';
 import { MCPService } from '~/lib/services/mcpService';
@@ -49,7 +49,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     },
   });
 
-  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, maxLLMSteps } =
+  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, studioSettings, maxLLMSteps } =
     await request.json<{
       messages: Messages;
       files: any;
@@ -57,6 +57,11 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
       contextOptimization: boolean;
       chatMode: 'discuss' | 'build';
       designScheme?: DesignScheme;
+      studioSettings?: {
+        temperature?: number;
+        customInstructions?: string;
+        systemPreset?: string;
+      };
       supabase?: {
         isConnected: boolean;
         hasSelectedProject: boolean;
@@ -74,8 +79,6 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
   const providerSettings: Record<string, IProviderSetting> = JSON.parse(
     parseCookies(cookieHeader || '').providers || '{}',
   );
-
-  const stream = new SwitchableStream();
 
   const cumulativeUsage = {
     completionTokens: 0,
@@ -210,6 +213,29 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           streamRecovery.updateActivity();
         }
 
+        const chatModeForFinish = chatMode === 'discuss' ? 'discuss' : 'build';
+        let assembled = '';
+        let buildSegments = 0;
+        let unstartedPasses = 0;
+
+        const settleResponse = (message: string) => {
+          dataStream.writeMessageAnnotation({
+            type: 'usage',
+            value: {
+              completionTokens: cumulativeUsage.completionTokens,
+              promptTokens: cumulativeUsage.promptTokens,
+              totalTokens: cumulativeUsage.totalTokens,
+            },
+          });
+          dataStream.writeData({
+            type: 'progress',
+            label: 'response',
+            status: 'complete',
+            order: progressCounter++,
+            message,
+          } satisfies ProgressAnnotation);
+        };
+
         const options: StreamingOptions = {
           supabaseConnection: supabase,
           toolChoice: 'auto',
@@ -230,39 +256,61 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               cumulativeUsage.totalTokens += usage.totalTokens || 0;
             }
 
-            if (finishReason !== 'length') {
-              dataStream.writeMessageAnnotation({
-                type: 'usage',
-                value: {
-                  completionTokens: cumulativeUsage.completionTokens,
-                  promptTokens: cumulativeUsage.promptTokens,
-                  totalTokens: cumulativeUsage.totalTokens,
-                },
-              });
-              dataStream.writeData({
-                type: 'progress',
-                label: 'response',
-                status: 'complete',
-                order: progressCounter++,
-                message: 'Response Generated',
-              } satisfies ProgressAnnotation);
+            assembled += content || '';
+
+            const gap = responseNeedsContinue(assembled, chatModeForFinish);
+            const siteDone =
+              gap === null && assembled.includes('<boltArtifact') && /<boltAction\b[^>]*\btype=["']start["']/.test(assembled);
+            const proseCutOff = finishReason === 'length' && !siteDone && gap === null;
+            const shouldContinue = gap !== null || proseCutOff;
+
+            if (!shouldContinue) {
+              settleResponse('Response Generated');
               await new Promise((resolve) => setTimeout(resolve, 0));
 
-              // stream.close();
               return;
             }
 
-            if (stream.switches >= MAX_RESPONSE_SEGMENTS) {
-              throw Error('Cannot continue message: Maximum segments reached');
+            /*
+             * A plan with no artifact gets two more passes. An open site keeps
+             * the same model for up to MAX_BUILD_SEGMENTS passes. The global
+             * segment constant stays at 2 for its own test and is not this cap.
+             */
+            if (gap === 'not-started') {
+              unstartedPasses += 1;
+
+              if (unstartedPasses > MAX_UNSTARTED_PASSES) {
+                settleResponse('Response Generated');
+                await new Promise((resolve) => setTimeout(resolve, 0));
+
+                return;
+              }
             }
 
-            const switchesLeft = MAX_RESPONSE_SEGMENTS - stream.switches;
+            buildSegments += 1;
 
-            logger.info(`Reached max token limit (${MAX_TOKENS}): Continuing message (${switchesLeft} switches left)`);
+            if (buildSegments > MAX_BUILD_SEGMENTS) {
+              logger.warn(`Site still open after ${MAX_BUILD_SEGMENTS} passes`);
+              settleResponse(`Stopped after ${MAX_BUILD_SEGMENTS} passes. The site is still open.`);
+              await new Promise((resolve) => setTimeout(resolve, 0));
+
+              return;
+            }
 
             const lastUserMessage = processedMessages.filter((x) => x.role == 'user').slice(-1)[0];
             const { model, provider } = extractPropertiesFromMessage(lastUserMessage);
-            processedMessages.push({ id: generateId(), role: 'assistant', content });
+
+            logger.info(`Continuing ${model} on ${provider} (${gap ?? 'length'}, pass ${buildSegments})`);
+
+            dataStream.writeData({
+              type: 'progress',
+              label: 'response',
+              status: 'in-progress',
+              order: progressCounter++,
+              message: `Still building with ${model}`,
+            } satisfies ProgressAnnotation);
+
+            processedMessages.push({ id: generateId(), role: 'assistant', content: content || '' });
             processedMessages.push({
               id: generateId(),
               role: 'user',
@@ -281,6 +329,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               contextFiles: filteredFiles,
               chatMode,
               designScheme,
+              studioSettings,
               summary,
               messageSliceId,
             });
@@ -289,6 +338,8 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
 
             (async () => {
               for await (const part of result.fullStream) {
+                streamRecovery.updateActivity();
+
                 if (part.type === 'error') {
                   const error: any = part.error;
                   logger.error(`${error}`);
@@ -322,6 +373,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           contextFiles: filteredFiles,
           chatMode,
           designScheme,
+          studioSettings,
           summary,
           messageSliceId,
         });

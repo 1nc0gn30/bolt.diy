@@ -11,7 +11,15 @@ const logger = createScopedLogger('LLMManager');
  * Providers exposed to the app. Every other provider in ./registry stays
  * unregistered, so its models never reach the model picker.
  */
-const ENABLED_PROVIDERS = new Set(['Google', 'Anthropic', 'OpenAI', 'Deepseek', 'Groq', 'OpenRouter']);
+const ENABLED_PROVIDERS = new Set([
+  'Google',
+  'Anthropic',
+  'OpenAI',
+  'Deepseek',
+  'Groq',
+  'OpenRouter',
+  'ZothLocal',
+]);
 
 export class LLMManager {
   private static _instance: LLMManager;

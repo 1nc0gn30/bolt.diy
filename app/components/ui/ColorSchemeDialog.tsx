@@ -60,10 +60,10 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     designScheme?.animationLibrary || defaultDesignScheme.animationLibrary || 'framer-motion',
   );
   const [commodities, setCommodities] = useState<string[]>(
-    designScheme?.commodities || defaultDesignScheme.commodities || ['conic-border-beam', 'aurora-mesh-gradient'],
+    designScheme?.commodities ?? defaultDesignScheme.commodities ?? [],
   );
   const [typographyPairing, setTypographyPairing] = useState<string>(
-    designScheme?.typographyPairing || defaultDesignScheme.typographyPairing || 'syne-space-grotesk',
+    designScheme?.typographyPairing || defaultDesignScheme.typographyPairing || 'space-grotesk-inter',
   );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -78,8 +78,8 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
       setFramework(designScheme.framework || 'vite-react');
       setUiLibrary(designScheme.uiLibrary || 'shadcn-ui');
       setAnimationLibrary(designScheme.animationLibrary || 'framer-motion');
-      setCommodities(designScheme.commodities || ['conic-border-beam', 'aurora-mesh-gradient']);
-      setTypographyPairing(designScheme.typographyPairing || 'syne-space-grotesk');
+      setCommodities(designScheme.commodities ?? defaultDesignScheme.commodities ?? []);
+      setTypographyPairing(designScheme.typographyPairing || defaultDesignScheme.typographyPairing || 'space-grotesk-inter');
     }
   }, [designScheme]);
 
@@ -162,8 +162,8 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
     setFramework(defaultDesignScheme.framework || 'vite-react');
     setUiLibrary(defaultDesignScheme.uiLibrary || 'shadcn-ui');
     setAnimationLibrary(defaultDesignScheme.animationLibrary || 'framer-motion');
-    setCommodities(defaultDesignScheme.commodities || ['conic-border-beam', 'aurora-mesh-gradient']);
-    setTypographyPairing(defaultDesignScheme.typographyPairing || 'syne-space-grotesk');
+    setCommodities(defaultDesignScheme.commodities || []);
+    setTypographyPairing(defaultDesignScheme.typographyPairing || 'space-grotesk-inter');
   };
 
   const filterItems = (items: CatalogItem[]) => {

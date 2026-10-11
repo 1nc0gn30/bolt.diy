@@ -22,19 +22,44 @@ function checkTool(name: string, command: string): LocalToolStatus {
       .trim();
 
     let version = '';
+    const probeEnv = {
+      ...process.env,
+      PATH: `/home/zoth/.local/bin:/usr/local/bin:/usr/bin:/bin:${process.env.PATH || ''}`,
+    };
+    const firstLine = (bin: string, timeout: number) =>
+      execSync(bin, { timeout, env: probeEnv }).toString().trim().split('\n')[0];
 
     try {
       if (command === 'claude') {
-        version = execSync('claude --version 2>&1', { timeout: 2000 }).toString().trim();
+        version = firstLine('claude --version 2>&1', 4000);
       } else if (command === 'ollama') {
-        version = execSync('ollama --version 2>&1', { timeout: 2000 }).toString().trim();
+        version = firstLine('ollama --version 2>&1', 4000);
       } else if (command === 'agy') {
         version = 'v2.0 (DeepMind Antigravity CLI)';
       } else if (command === 'hermes') {
-        version = 'Nous Hermes Agent v0.1';
+        version = firstLine('hermes --version 2>&1', 4000);
+      } else if (command === 'grok') {
+        version = firstLine('grok --version 2>&1', 4000);
+      } else if (command === 'cline') {
+        version = firstLine('cline version 2>&1', 4000);
+      } else if (command === 'aider') {
+        version = firstLine('aider --version 2>&1', 8000);
+      } else if (command === 'opencode') {
+        const probe = execSync('opencode --version 2>&1', { timeout: 4000, env: probeEnv }).toString();
+        version = /not installed/i.test(probe) ? '' : probe.trim().split('\n')[0];
       }
     } catch {
       // Ignore version probe failure
+    }
+
+    if (command === 'opencode' && !version) {
+      return {
+        name,
+        command,
+        isAvailable: false,
+        path: toolPath,
+        version: 'Launcher only',
+      };
     }
 
     return {
@@ -55,8 +80,12 @@ function checkTool(name: string, command: string): LocalToolStatus {
 
 export async function loader({ request: _request }: LoaderFunctionArgs) {
   const tools: LocalToolStatus[] = [
-    checkTool('Antigravity CLI (AGY)', 'agy'),
+    checkTool('Grok CLI', 'grok'),
     checkTool('Nous Hermes Agent', 'hermes'),
+    checkTool('OpenCode', 'opencode'),
+    checkTool('Cline', 'cline'),
+    checkTool('Aider', 'aider'),
+    checkTool('Antigravity CLI (AGY)', 'agy'),
     checkTool('Claude Code', 'claude'),
     checkTool('Ollama Local LLM', 'ollama'),
     checkTool('Git Version Control', 'git'),
@@ -77,7 +106,10 @@ export async function loader({ request: _request }: LoaderFunctionArgs) {
       { label: 'agy models', cmd: 'agy models' },
       { label: 'agy agent', cmd: 'agy agent' },
       { label: 'agy mcp list', cmd: 'agy mcp list' },
-      { label: 'hermes --help', cmd: 'hermes --help' },
+      { label: 'grok models', cmd: 'grok models' },
+      { label: 'hermes --version', cmd: 'hermes --version' },
+      { label: 'cline version', cmd: 'cline version' },
+      { label: 'aider --version', cmd: 'aider --version' },
       { label: 'claude --version', cmd: 'claude --version' },
       { label: 'ollama list', cmd: 'ollama list' },
       { label: 'git status', cmd: 'git status' },

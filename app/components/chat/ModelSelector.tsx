@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { ModelInfo } from '~/lib/modules/llm/types';
-import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
+import { LOCAL_PROVIDERS, updateProviderSettings } from '~/lib/stores/settings';
 import type { ProviderInfo } from '~/types/model';
 import { classNames } from '~/utils/classNames';
 import { PROVIDER_LIST } from '~/utils/constants';
@@ -97,6 +97,79 @@ export const CLOUD_MODEL_PRESETS: CloudModelPreset[] = [
     badgeType: 'fast',
     icon: '⚡',
     description: 'Ultra-low latency LPU cloud inference via Groq',
+  },
+];
+
+export const LOCAL_HARNESS_PRESETS: CloudModelPreset[] = [
+  {
+    id: 'grok-cli',
+    name: 'Grok CLI',
+    providerName: 'ZothLocal',
+    modelName: 'grok-cli',
+    badge: 'ZOTH OS',
+    badgeType: 'flagship',
+    icon: '✦',
+    description: 'Grok Build on this machine. Answers in the chat. Does not take over your open Grok session.',
+  },
+  {
+    id: 'hermes-agent',
+    name: 'Hermes',
+    providerName: 'ZothLocal',
+    modelName: 'hermes-agent',
+    badge: 'ZOTH OS',
+    badgeType: 'frontier',
+    icon: '♛',
+    description: 'Nous Hermes Agent, using the model already configured in Hermes.',
+  },
+  {
+    id: 'opencode',
+    name: 'OpenCode',
+    providerName: 'ZothLocal',
+    modelName: 'opencode',
+    badge: 'ZOTH OS',
+    badgeType: 'frontier',
+    icon: '⌘',
+    description: 'OpenCode CLI. The Zoth OS menu is here. The CLI itself still needs to be installed.',
+  },
+  {
+    id: 'cline',
+    name: 'Cline',
+    providerName: 'ZothLocal',
+    modelName: 'cline',
+    badge: 'ZOTH OS',
+    badgeType: 'fast',
+    icon: '▸',
+    description: 'Cline CLI on this machine, same binary Zoth OS launches.',
+  },
+  {
+    id: 'aider',
+    name: 'Aider',
+    providerName: 'ZothLocal',
+    modelName: 'aider',
+    badge: 'ZOTH OS',
+    badgeType: 'fast',
+    icon: '✎',
+    description: 'Aider pair programmer. Uses your Aider config and does not commit.',
+  },
+  {
+    id: 'agy-engine',
+    name: 'AGY',
+    providerName: 'ZothLocal',
+    modelName: 'agy-engine',
+    badge: 'ZOTH OS',
+    badgeType: 'frontier',
+    icon: '⚡',
+    description: 'Antigravity CLI already wired on this host.',
+  },
+  {
+    id: 'claude-cli',
+    name: 'Claude Code',
+    providerName: 'ZothLocal',
+    modelName: 'claude-cli',
+    badge: 'ZOTH OS',
+    badgeType: 'frontier',
+    icon: '◈',
+    description: 'Claude Code CLI on this host.',
   },
 ];
 
@@ -208,6 +281,7 @@ export const ModelSelector = ({
   setProvider,
   modelList,
   providerList,
+  apiKeys = {},
   modelLoading,
 }: ModelSelectorProps) => {
   const [modelSearchQuery, setModelSearchQuery] = useState('');
@@ -327,12 +401,56 @@ export const ModelSelector = ({
       });
   }, [modelList, provider?.name, showFreeModelsOnly, debouncedModelSearchQuery]);
 
+  const [envKeyStatus, setEnvKeyStatus] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    let isMounted = true;
+    const cloudProviders = Array.from(new Set(CLOUD_MODEL_PRESETS.map((p) => p.providerName)));
+
+    Promise.all(
+      cloudProviders.map(async (pName) => {
+        if (apiKeys?.[pName]?.trim()) {
+          return [pName, true] as const;
+        }
+
+        try {
+          const res = await fetch(`/api/check-env-key?provider=${encodeURIComponent(pName)}`);
+
+          if (!res.ok) {
+            return [pName, false] as const;
+          }
+
+          const data = (await res.json()) as { isSet?: boolean };
+          return [pName, Boolean(data?.isSet)] as const;
+        } catch {
+          return [pName, false] as const;
+        }
+      }),
+    ).then((results) => {
+      if (isMounted) {
+        setEnvKeyStatus(Object.fromEntries(results));
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [apiKeys]);
+
   const filteredProviders = useMemo(() => {
+    const callableProviders = providerList.filter((p) => {
+      if (p.name === 'ZothLocal') {
+        return true;
+      }
+
+      return Boolean(apiKeys?.[p.name]?.trim()) || Boolean(envKeyStatus[p.name]);
+    });
+
     if (!debouncedProviderSearchQuery) {
-      return providerList;
+      return callableProviders;
     }
 
-    return providerList
+    return callableProviders
       .map((provider) => {
         const match = fuzzyMatch(debouncedProviderSearchQuery, provider.name);
         return {
@@ -344,7 +462,7 @@ export const ModelSelector = ({
       })
       .filter((provider) => provider.searchMatches)
       .sort((a, b) => b.searchScore - a.searchScore);
-  }, [providerList, debouncedProviderSearchQuery]);
+  }, [providerList, apiKeys, envKeyStatus, debouncedProviderSearchQuery]);
 
   // Reset free models filter when provider changes
   useEffect(() => {
@@ -514,6 +632,10 @@ export const ModelSelector = ({
     }
 
     if (provider && !providerList.some((p) => p.name === provider.name)) {
+      if (provider.name === 'ZothLocal') {
+        return;
+      }
+
       const firstEnabledProvider = providerList[0];
       setProvider?.(firstEnabledProvider);
 
@@ -525,16 +647,48 @@ export const ModelSelector = ({
     }
   }, [providerList, provider, setProvider, modelList, setModel]);
 
+  const visibleCloudPresets = useMemo(() => {
+    return CLOUD_MODEL_PRESETS.filter((preset) => {
+      const hasKey = Boolean(apiKeys?.[preset.providerName]?.trim()) || Boolean(envKeyStatus[preset.providerName]);
+
+      if (!hasKey) {
+        return false;
+      }
+
+      const prov = providerList.find((p) => p.name === preset.providerName);
+
+      if (!prov) {
+        return false;
+      }
+
+      const hasModel =
+        prov.staticModels?.some((m) => m.name === preset.modelName) ||
+        modelList.some((m) => m.provider === preset.providerName && m.name === preset.modelName);
+
+      return Boolean(hasModel);
+    });
+  }, [apiKeys, envKeyStatus, providerList, modelList]);
+
   const isCurrentPreset = useMemo(() => {
-    return CLOUD_MODEL_PRESETS.some((p) => p.providerName === provider?.name && p.modelName === model);
-  }, [provider?.name, model]);
+    return [...visibleCloudPresets, ...LOCAL_HARNESS_PRESETS].some(
+      (p) => p.providerName === provider?.name && p.modelName === model,
+    );
+  }, [provider?.name, model, visibleCloudPresets]);
 
   const activePreset = useMemo(() => {
-    return CLOUD_MODEL_PRESETS.find((p) => p.providerName === provider?.name && p.modelName === model);
-  }, [provider?.name, model]);
+    return [...visibleCloudPresets, ...LOCAL_HARNESS_PRESETS].find(
+      (p) => p.providerName === provider?.name && p.modelName === model,
+    );
+  }, [provider?.name, model, visibleCloudPresets]);
 
   const [showDetailedSelector, setShowDetailedSelector] = useState(false);
-  const effectiveShowDetailed = showDetailedSelector || !isCurrentPreset;
+
+  const onlyZothAndGemini = useMemo(() => {
+    const cloudOnly = visibleCloudPresets.filter((p) => p.providerName !== 'ZothLocal');
+    return cloudOnly.length <= 1 && cloudOnly.every((p) => p.providerName === 'Google');
+  }, [visibleCloudPresets]);
+
+  const effectiveShowDetailed = (showDetailedSelector && !onlyZothAndGemini) || !isCurrentPreset;
 
   const handleSelectPreset = useCallback(
     (preset: CloudModelPreset) => {
@@ -542,6 +696,10 @@ export const ModelSelector = ({
 
       if (!targetProvider) {
         targetProvider = (PROVIDER_LIST as ProviderInfo[]).find((p) => p.name === preset.providerName);
+      }
+
+      if (preset.providerName === 'ZothLocal') {
+        updateProviderSettings('ZothLocal', { enabled: true });
       }
 
       if (targetProvider && setProvider) {
@@ -578,7 +736,7 @@ export const ModelSelector = ({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500" />
             </span>
             <span className="font-semibold text-bolt-elements-textPrimary tracking-wide uppercase text-[10px]">
-              Frontier Cloud AI Models
+              AI Engines & Agent Harnesses
             </span>
           </div>
 
@@ -586,35 +744,98 @@ export const ModelSelector = ({
             <span className="text-[11px] text-bolt-elements-textSecondary hidden sm:inline">
               Selected:{' '}
               <strong className="text-[#D4AF37] font-mono">{activePreset?.name || model || 'Custom Model'}</strong>{' '}
-              <span className="text-[10px] text-bolt-elements-textTertiary">({provider?.name || 'Cloud'})</span>
+              <span className="text-[10px] text-bolt-elements-textTertiary">({provider?.name || 'Local'})</span>
             </span>
 
-            <button
-              type="button"
-              onClick={() => setShowDetailedSelector(!showDetailedSelector)}
-              className={classNames(
-                'flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer',
-                effectiveShowDetailed
-                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                  : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
-              )}
-              title="Toggle full provider and model search (540+ models)"
-            >
-              <span className="i-ph:sliders-horizontal text-xs" />
-              <span>{effectiveShowDetailed ? 'Hide Detailed' : 'All 540+ Models'}</span>
-              <span
+            {!onlyZothAndGemini && (
+              <button
+                type="button"
+                onClick={() => setShowDetailedSelector(!showDetailedSelector)}
                 className={classNames(
-                  'i-ph:caret-down text-[10px] transition-transform',
-                  effectiveShowDetailed ? 'rotate-180' : '',
+                  'flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer',
+                  effectiveShowDetailed
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                    : 'bg-bolt-elements-background-depth-3 text-bolt-elements-textTertiary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
                 )}
-              />
-            </button>
+                title="Toggle configured provider and model search"
+              >
+                <span className="i-ph:sliders-horizontal text-xs" />
+                <span>{effectiveShowDetailed ? 'Hide Detailed' : 'Configured Providers'}</span>
+                <span
+                  className={classNames(
+                    'i-ph:caret-down text-[10px] transition-transform',
+                    effectiveShowDetailed ? 'rotate-180' : '',
+                  )}
+                />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Cloud Model Preset Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:scrollbar-none [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor">
-          {CLOUD_MODEL_PRESETS.map((preset) => {
+        {visibleCloudPresets.length > 0 && (
+          <>
+            <div className="flex items-center gap-2 px-0.5 pt-1">
+              <span className="font-semibold text-bolt-elements-textPrimary tracking-wide uppercase text-[10px] whitespace-nowrap">
+                Cloud models
+              </span>
+              <span className="text-[10px] text-bolt-elements-textTertiary truncate">
+                Frontier cloud APIs. Visible only when configured with callable credentials.
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:scrollbar-none [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:bg-bolt-elements-borderColor">
+              {visibleCloudPresets.map((preset) => {
+                const isPresetActive = provider?.name === preset.providerName && model === preset.modelName;
+
+                return (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => handleSelectPreset(preset)}
+                    title={preset.description}
+                    className={classNames(
+                      'group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 cursor-pointer',
+                      isPresetActive
+                        ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/70 shadow-[0_0_12px_rgba(212,175,55,0.25)] font-semibold'
+                        : 'bg-bolt-elements-prompt-background hover:bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
+                    )}
+                  >
+                    <span className="text-sm">{preset.icon}</span>
+                    <span>{preset.name}</span>
+                    <span
+                      className={classNames(
+                        'text-[9px] px-1 py-0.2 rounded font-mono uppercase border',
+                        preset.badgeType === 'reasoning'
+                          ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                          : preset.badgeType === 'fast'
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            : preset.badgeType === 'flagship'
+                              ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
+                              : 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                      )}
+                    >
+                      {preset.badge}
+                    </span>
+                    {isPresetActive && (
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        <div className="flex items-center gap-2 px-0.5 pt-1">
+          <span className="font-semibold text-bolt-elements-textPrimary tracking-wide uppercase text-[10px] whitespace-nowrap">
+            Zoth OS agents
+          </span>
+          <span className="text-[10px] text-bolt-elements-textTertiary truncate">
+            Same CLIs the OS launches. The reply comes back into this chat.
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {LOCAL_HARNESS_PRESETS.map((preset) => {
             const isPresetActive = provider?.name === preset.providerName && model === preset.modelName;
 
             return (
@@ -626,29 +847,13 @@ export const ModelSelector = ({
                 className={classNames(
                   'group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all flex-shrink-0 cursor-pointer',
                   isPresetActive
-                    ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/70 shadow-[0_0_12px_rgba(212,175,55,0.25)] font-semibold'
+                    ? 'bg-emerald-500/15 text-emerald-200 border border-emerald-400/70 font-semibold'
                     : 'bg-bolt-elements-prompt-background hover:bg-bolt-elements-background-depth-3 text-bolt-elements-textSecondary hover:text-bolt-elements-textPrimary border border-bolt-elements-borderColor/60',
                 )}
               >
                 <span className="text-sm">{preset.icon}</span>
                 <span>{preset.name}</span>
-                <span
-                  className={classNames(
-                    'text-[9px] px-1 py-0.2 rounded font-mono uppercase border',
-                    preset.badgeType === 'reasoning'
-                      ? 'bg-purple-500/15 text-purple-300 border-purple-500/30'
-                      : preset.badgeType === 'fast'
-                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                        : preset.badgeType === 'flagship'
-                          ? 'bg-blue-500/15 text-blue-300 border-blue-500/30'
-                          : 'bg-amber-500/15 text-amber-300 border-amber-500/30',
-                  )}
-                >
-                  {preset.badge}
-                </span>
-                {isPresetActive && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
-                )}
+                {isPresetActive && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
               </button>
             );
           })}

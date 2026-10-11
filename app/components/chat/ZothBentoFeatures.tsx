@@ -55,7 +55,7 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
             <span className="i-ph:arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity text-[#D4AF37]" />
           </h3>
           <p className="text-xs text-bolt-elements-textSecondary mt-1 leading-relaxed">
-            Architect with Gemini 2.5 Flash, Claude 3.7 Sonnet, DeepSeek R1, OpenAI o3-mini & Groq LPU.
+            Architect with Gemini 2.5 Flash, Grok CLI, Nous Hermes, AGY, and frontier runners.
           </p>
         </div>
 
@@ -102,7 +102,7 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
             <span className="i-ph:arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity text-purple-400" />
           </h3>
           <p className="text-xs text-bolt-elements-textSecondary mt-1 leading-relaxed">
-            External AI agents (AGY, Claude Code, Cursor) can drive prompts, builds & inspect files via MCP.
+            Grok CLI, Hermes, OpenCode, Cline, and Aider sit next to the cloud models. MCP still lets an outside agent drive a build.
           </p>
         </div>
       </div>
@@ -132,7 +132,7 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
 
             <div className="space-y-4 text-xs text-bolt-elements-textSecondary">
               <p>
-                Connect Google Antigravity, Claude Code, Cursor, or Nous Hermes directly to this Zoth WebGen instance.
+                Connect Grok CLI, Hermes, OpenCode, Cline, Aider, Antigravity, or Claude Code to this Zoth WebGen instance.
                 External agents can prompt builds, run commands, and read generated source code.
               </p>
 
