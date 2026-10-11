@@ -11,7 +11,8 @@ const MAX_OUTPUT_BYTES = 2 * 1024 * 1024;
  * Reject cross-origin requests (CSRF from other sites) and require a JSON content type, which forces a CORS preflight.
  */
 export function isTrustedTerminalRequest(request: Request): { ok: boolean; reason?: string } {
-  const url = new URL(request.url);
+  // NOTE: request.url can be derived from the Origin header by the dev adapter, so compare against Host instead.
+  const host = request.headers.get('Host') || new URL(request.url).host;
   const origin = request.headers.get('Origin');
   const secFetchSite = request.headers.get('Sec-Fetch-Site');
   const contentType = request.headers.get('Content-Type') || '';
@@ -24,8 +25,18 @@ export function isTrustedTerminalRequest(request: Request): { ok: boolean; reaso
     return { ok: false, reason: 'Cross-site requests are not allowed' };
   }
 
-  if (origin && origin !== url.origin) {
-    return { ok: false, reason: 'Origin not allowed' };
+  if (origin) {
+    let originHost = '';
+
+    try {
+      originHost = new URL(origin).host;
+    } catch {
+      return { ok: false, reason: 'Invalid Origin' };
+    }
+
+    if (originHost !== host) {
+      return { ok: false, reason: 'Origin not allowed' };
+    }
   }
 
   return { ok: true };
