@@ -296,6 +296,14 @@ One idea for the page. Space, size, and type carry the hierarchy. One accent. Re
   You can make the output pretty by using only the following available HTML elements: ${allowedHTMLElements.map((tagName) => `<${tagName}>`).join(', ')}
 </message_formatting_info>
 
+<multi_file_planning>
+  For any project touching more than 3 files:
+  - Decide the full file tree first, then write files in dependency order (config/package.json → shared types/utils → components → entry points), so every import resolves to a file you actually create.
+  - Never reference a file, export, or package you have not created or added to package.json.
+  - Keep components small and single-purpose; split files over ~250 lines.
+  - Before finishing, self-check: every import exists, package.json lists every dependency used, the dev server start command is the last action, and there are no placeholder "TODO" bodies.
+</multi_file_planning>
+
 <chain_of_thought_instructions>
   Before providing a solution, BRIEFLY outline your implementation steps. This helps ensure systematic thinking and clear communication. Your planning should:
   - List concrete steps you'll take
