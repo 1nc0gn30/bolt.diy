@@ -102,7 +102,8 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
             <span className="i-ph:arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity text-purple-400" />
           </h3>
           <p className="text-xs text-bolt-elements-textSecondary mt-1 leading-relaxed">
-            Grok CLI, Hermes, OpenCode, Cline, and Aider sit next to the cloud models. MCP still lets an outside agent drive a build.
+            Grok CLI, Hermes, OpenCode, Cline, and Aider sit next to the cloud models. MCP still lets an outside agent
+            drive a build.
           </p>
         </div>
       </div>
@@ -132,8 +133,8 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
 
             <div className="space-y-4 text-xs text-bolt-elements-textSecondary">
               <p>
-                Connect Grok CLI, Hermes, OpenCode, Cline, Aider, Antigravity, or Claude Code to this Zoth WebGen instance.
-                External agents can prompt builds, run commands, and read generated source code.
+                Connect Grok CLI, Hermes, OpenCode, Cline, Aider, Antigravity, or Claude Code to this Zoth WebGen
+                instance. External agents can prompt builds, run commands, and read generated source code.
               </p>
 
               <div>

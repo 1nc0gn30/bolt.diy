@@ -5,6 +5,8 @@ import { APIKeyManager } from './APIKeyManager';
 import styles from './BaseChat.module.scss';
 import FilePreview from './FilePreview';
 import { McpTools } from './MCPTools';
+import { NoahAestheticStrip } from './NoahAestheticStrip';
+import { NoahGenerationStepper } from './NoahGenerationStepper';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { SendButton } from './SendButton.client';
 import { SupabaseConnection } from './SupabaseConnection';
@@ -16,13 +18,11 @@ import { IconButton } from '~/components/ui/IconButton';
 import { ExpoQrModal } from '~/components/workbench/ExpoQrModal';
 import type { ElementInfo } from '~/components/workbench/Inspector';
 import { LOCAL_PROVIDERS } from '~/lib/stores/settings';
+import { isAIStudioOpenAtom } from '~/lib/stores/studioStore';
 import type { DesignScheme } from '~/types/design-scheme';
 import type { ProviderInfo } from '~/types/model';
 import { classNames } from '~/utils/classNames';
 import { PROVIDER_LIST } from '~/utils/constants';
-import { NoahAestheticStrip } from './NoahAestheticStrip';
-import { NoahGenerationStepper } from './NoahGenerationStepper';
-import { isAIStudioOpenAtom } from '~/lib/stores/studioStore';
 
 interface ChatBoxProps {
   isModelSettingsCollapsed: boolean;

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { toggleTheme } from './theme';
 import { DEFAULT_TAB_CONFIG } from '~/components/@settings/core/constants';
 import type { TabVisibilityConfig, TabWindowConfig, UserTabConfig } from '~/components/@settings/core/types';
+import type { IProviderSetting } from '~/types/model';
 import type { IProviderConfig } from '~/types/model';
 import { PROVIDER_LIST } from '~/utils/constants';
 
@@ -91,8 +92,10 @@ const getInitialProviderSettings = (): ProviderSetting => {
     initialSettings[provider.name] = {
       ...provider,
       settings: {
-        // Ollama and LM Studio stay off until a local server is configured.
-        // ZothLocal is the on-machine agent row and is ready without an API key.
+        /*
+         * Ollama and LM Studio stay off until a local server is configured.
+         * ZothLocal is the on-machine agent row and is ready without an API key.
+         */
         enabled: provider.name === 'ZothLocal' || !LOCAL_PROVIDERS.includes(provider.name),
       },
     };
@@ -198,14 +201,19 @@ if (isBrowser) {
 }
 
 // Create a function to update provider settings that handles both store and persistence
-export const updateProviderSettings = (provider: string, settings: ProviderSetting) => {
+export const updateProviderSettings = (provider: string, settings: IProviderSetting) => {
   const currentSettings = providersStore.get();
+
+  if (!currentSettings[provider]) {
+    console.warn(`[settings] Unknown provider "${provider}"; ignoring settings update`);
+    return;
+  }
 
   // Create new provider config with updated settings
   const updatedProvider = {
     ...currentSettings[provider],
     settings: {
-      ...currentSettings[provider].settings,
+      ...(currentSettings[provider].settings || {}),
       ...settings,
     },
   };

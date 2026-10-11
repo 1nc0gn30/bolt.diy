@@ -10,9 +10,12 @@ const closedSite = `
 
 describe('responseNeedsContinue', () => {
   it('continues a cut-off artifact in build mode', () => {
-    expect(responseNeedsContinue('<boltArtifact id="site" title="Site">\n<boltAction type="file" filePath="index.html">', 'build')).toBe(
-      'unclosed',
-    );
+    expect(
+      responseNeedsContinue(
+        '<boltArtifact id="site" title="Site">\n<boltAction type="file" filePath="index.html">',
+        'build',
+      ),
+    ).toBe('unclosed');
   });
 
   it('continues when the file is closed and the dev server was never started', () => {

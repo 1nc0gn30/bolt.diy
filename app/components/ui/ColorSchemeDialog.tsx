@@ -79,7 +79,9 @@ export const ColorSchemeDialog: React.FC<ColorSchemeDialogProps> = ({ setDesignS
       setUiLibrary(designScheme.uiLibrary || 'shadcn-ui');
       setAnimationLibrary(designScheme.animationLibrary || 'framer-motion');
       setCommodities(designScheme.commodities ?? defaultDesignScheme.commodities ?? []);
-      setTypographyPairing(designScheme.typographyPairing || defaultDesignScheme.typographyPairing || 'space-grotesk-inter');
+      setTypographyPairing(
+        designScheme.typographyPairing || defaultDesignScheme.typographyPairing || 'space-grotesk-inter',
+      );
     }
   }, [designScheme]);
 

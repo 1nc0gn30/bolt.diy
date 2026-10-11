@@ -2,12 +2,12 @@ import { useStore } from '@nanostores/react';
 import { useState } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { HeaderActionButtons } from './HeaderActionButtons.client';
-import { AgyTerminalModal } from '~/components/terminal/AgyTerminalModal';
 import { AIStudioModal } from '~/components/studio/AIStudioModal';
-import { isAIStudioOpenAtom } from '~/lib/stores/studioStore';
+import { AgyTerminalModal } from '~/components/terminal/AgyTerminalModal';
 import { ChatDescription } from '~/lib/persistence/ChatDescription.client';
 import { chatStore } from '~/lib/stores/chat';
 import { isProLicensedStore } from '~/lib/stores/license';
+import { isAIStudioOpenAtom } from '~/lib/stores/studioStore';
 import { classNames } from '~/utils/classNames';
 
 export function Header() {

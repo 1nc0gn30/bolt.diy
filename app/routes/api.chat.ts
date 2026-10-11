@@ -49,29 +49,38 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
     },
   });
 
-  const { messages, files, promptId, contextOptimization, supabase, chatMode, designScheme, studioSettings, maxLLMSteps } =
-    await request.json<{
-      messages: Messages;
-      files: any;
-      promptId?: string;
-      contextOptimization: boolean;
-      chatMode: 'discuss' | 'build';
-      designScheme?: DesignScheme;
-      studioSettings?: {
-        temperature?: number;
-        customInstructions?: string;
-        systemPreset?: string;
+  const {
+    messages,
+    files,
+    promptId,
+    contextOptimization,
+    supabase,
+    chatMode,
+    designScheme,
+    studioSettings,
+    maxLLMSteps,
+  } = await request.json<{
+    messages: Messages;
+    files: any;
+    promptId?: string;
+    contextOptimization: boolean;
+    chatMode: 'discuss' | 'build';
+    designScheme?: DesignScheme;
+    studioSettings?: {
+      temperature?: number;
+      customInstructions?: string;
+      systemPreset?: string;
+    };
+    supabase?: {
+      isConnected: boolean;
+      hasSelectedProject: boolean;
+      credentials?: {
+        anonKey?: string;
+        supabaseUrl?: string;
       };
-      supabase?: {
-        isConnected: boolean;
-        hasSelectedProject: boolean;
-        credentials?: {
-          anonKey?: string;
-          supabaseUrl?: string;
-        };
-      };
-      maxLLMSteps: number;
-    }>();
+    };
+    maxLLMSteps: number;
+  }>();
 
   const cookieHeader = request.headers.get('Cookie');
   const apiKeys = JSON.parse(parseCookies(cookieHeader || '').apiKeys || '{}');
@@ -214,6 +223,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         }
 
         const chatModeForFinish = chatMode === 'discuss' ? 'discuss' : 'build';
+
         let assembled = '';
         let buildSegments = 0;
         let unstartedPasses = 0;
@@ -259,8 +269,12 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
             assembled += content || '';
 
             const gap = responseNeedsContinue(assembled, chatModeForFinish);
+
             const siteDone =
-              gap === null && assembled.includes('<boltArtifact') && /<boltAction\b[^>]*\btype=["']start["']/.test(assembled);
+              gap === null &&
+              assembled.includes('<boltArtifact') &&
+              /<boltAction\b[^>]*\btype=["']start["']/.test(assembled);
+
             const proseCutOff = finishReason === 'length' && !siteDone && gap === null;
             const shouldContinue = gap !== null || proseCutOff;
 

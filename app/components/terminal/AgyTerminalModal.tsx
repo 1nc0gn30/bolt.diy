@@ -298,17 +298,13 @@ export const AgyTerminalModal: React.FC<AgyTerminalModalProps> = ({ isOpen, onCl
       { label: 'grok models', cmd: 'grok models' },
       { label: 'grok doctor', cmd: 'grok doctor' },
     ],
-    opencode: [
-      { label: 'opencode --version', cmd: 'opencode --version' },
-    ],
+    opencode: [{ label: 'opencode --version', cmd: 'opencode --version' }],
     cline: [
       { label: 'cline version', cmd: 'cline version' },
       { label: 'cline config', cmd: 'cline config' },
       { label: 'cline doctor', cmd: 'cline doctor' },
     ],
-    aider: [
-      { label: 'aider --version', cmd: 'aider --version' },
-    ],
+    aider: [{ label: 'aider --version', cmd: 'aider --version' }],
     agy: [
       { label: 'agy --help', cmd: 'agy --help' },
       { label: 'agy models', cmd: 'agy models' },

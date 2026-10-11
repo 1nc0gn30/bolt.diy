@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createOpenAI } from '@ai-sdk/openai';
 import type { LanguageModelV1, LanguageModelV1CallOptions, LanguageModelV1StreamPart } from 'ai';
-import { createGrokParseState, finishGrokChunk, pushGrokChunk } from '~/lib/modules/llm/grok-stream';
 import { BaseProvider } from '~/lib/modules/llm/base-provider';
+import { createGrokParseState, finishGrokChunk, pushGrokChunk } from '~/lib/modules/llm/grok-stream';
 import type { ModelInfo } from '~/lib/modules/llm/types';
 import type { IProviderSetting } from '~/types/model';
 import { logger } from '~/utils/logger';
@@ -40,6 +40,7 @@ function stripAnsi(text: string): string {
 
 function findRealOpenCode(): string | null {
   const homeDir = process.env.HOME || '/home/zoth';
+
   const candidates = [
     `${homeDir}/.local/bin/opencode`,
     `${homeDir}/.npm-global/bin/opencode`,
@@ -169,11 +170,13 @@ function createCliLanguageModel(
       const spawn = await getSpawn();
 
       let output = '';
+
       const args = argsBuilder(promptText);
 
       await new Promise<void>((resolve, reject) => {
         let settled = false;
         let stopTimer: ReturnType<typeof setTimeout> | null = null;
+
         const finish = (fn: () => void) => {
           if (settled) {
             return;
@@ -261,8 +264,11 @@ function createCliLanguageModel(
           let emitted = false;
           let raw = '';
           let finishReason: 'stop' | 'length' = 'stop';
+
           const grokState = createGrokParseState();
+
           let grokBuffer = '';
+
           const child = spawn(binPath, args, {
             env: cliEnv,
             cwd,
@@ -629,13 +635,11 @@ export default class ZothLocalProvider extends BaseProvider {
         );
       }
 
-      return createCliLanguageModel(
-        'opencode',
-        'opencode',
-        (promptText) => ['run', promptText],
-        undefined,
-        { cwd: bench, timeoutMs: 300000, binPath: realBin },
-      );
+      return createCliLanguageModel('opencode', 'opencode', (promptText) => ['run', promptText], undefined, {
+        cwd: bench,
+        timeoutMs: 300000,
+        binPath: realBin,
+      });
     }
 
     if (model === 'cline') {

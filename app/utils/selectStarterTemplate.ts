@@ -358,11 +358,12 @@ export async function getTemplates(templateName: string, title?: string) {
   }
 
   const githubRepo = template.githubRepo;
+
   let files: { name: string; path: string; content: string }[] = [];
 
   try {
     files = await getGitHubRepoContent(githubRepo);
-  } catch (error) {
+  } catch {
     console.warn(`Remote GitHub template fetch failed for ${githubRepo}, using built-in high-speed fallback template`);
     files = getFallbackViteTemplate();
   }

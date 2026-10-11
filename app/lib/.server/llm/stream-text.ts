@@ -147,7 +147,9 @@ export async function streamText(props: {
         maxTokenAllowed: 1048576,
         maxCompletionTokens: 65536,
       };
-      logger.warn(`Model "${currentModel}" not explicitly listed in static models; using dynamic fallback. Available: ${names}`);
+      logger.warn(
+        `Model "${currentModel}" not explicitly listed in static models; using dynamic fallback. Available: ${names}`,
+      );
     }
   }
 
@@ -337,7 +339,11 @@ export async function streamText(props: {
     ...filteredOptions,
 
     // Set temperature to 1 for reasoning models (required by OpenAI API)
-    ...(isReasoning ? { temperature: 1 } : studioSettings?.temperature !== undefined ? { temperature: studioSettings.temperature } : {}),
+    ...(isReasoning
+      ? { temperature: 1 }
+      : studioSettings?.temperature !== undefined
+        ? { temperature: studioSettings.temperature }
+        : {}),
   };
 
   // DEBUG: Log final streaming parameters

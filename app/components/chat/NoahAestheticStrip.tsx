@@ -19,7 +19,10 @@ export const NoahAestheticStrip: React.FC<NoahAestheticStripProps> = ({
 
   const handleSelectPreset = (presetId: string) => {
     const preset = STUDIO_PRESETS.find((p) => p.id === presetId);
-    if (!preset || !setDesignScheme) return;
+
+    if (!preset || !setDesignScheme) {
+      return;
+    }
 
     playTactileClick();
 

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@nanostores/react';
-import { playTactileClick, playSuccessChime } from '~/lib/modules/design-libraries/media-packs';
+import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { playTactileClick, playSuccessChime } from '~/lib/modules/design-libraries/media-packs';
 import { studioTelemetryAtom } from '~/lib/stores/studioStore';
 
 export interface AIStudioModalProps {
@@ -25,32 +25,41 @@ export const STUDIO_SYSTEM_PRESETS: StudioSystemPreset[] = [
     id: 'avant-garde-2026',
     name: 'Avant-Garde Motion & UI 2026',
     badge: 'Awwwards / FWA Grade',
-    description: 'Bespoke modern art direction with pure CSS conic border beams, ambient aurora mesh, and kinetic canvas motion.',
-    systemDirective: 'You are Zoth Avant-Garde WebGen Studio. You build world-class, bespoke web applications and interactive landing pages that look and feel like they won Site of the Day on Awwwards or FWA. Enforce single-idea clarity, Syne & Space Grotesk typography, and real in-browser React utility.',
+    description:
+      'Bespoke modern art direction with pure CSS conic border beams, ambient aurora mesh, and kinetic canvas motion.',
+    systemDirective:
+      'You are Zoth Avant-Garde WebGen Studio. You build world-class, bespoke web applications and interactive landing pages that look and feel like they won Site of the Day on Awwwards or FWA. Enforce single-idea clarity, Syne & Space Grotesk typography, and real in-browser React utility.',
   },
   {
     id: 'sovereign-saas',
     name: 'Sovereign Micro-SaaS Architect',
     badge: 'Stripe + Solana Rails',
-    description: 'High-converting SaaS with obsidian glassmorphic UI, above-the-fold sales banner, frosted-glass paywall blur, and dual checkout rails.',
-    systemDirective: 'You are Sovereign SaaS Architect. You build high-converting micro-SaaS applications with dark glassmorphic aesthetics, dual Stripe and Solana DePay checkout buttons, transparent telemetry, and 1-click license activation.',
+    description:
+      'High-converting SaaS with obsidian glassmorphic UI, above-the-fold sales banner, frosted-glass paywall blur, and dual checkout rails.',
+    systemDirective:
+      'You are Sovereign SaaS Architect. You build high-converting micro-SaaS applications with dark glassmorphic aesthetics, dual Stripe and Solana DePay checkout buttons, transparent telemetry, and 1-click license activation.',
   },
   {
     id: 'astro-speed',
     name: 'Astro 5 Islands Ultra-Speed',
     badge: 'Zero-JS Default • SSG/SSR',
-    description: 'Ultra-fast web architecture using component islands, Tailwind CSS, content collections, and 100/100 Lighthouse performance.',
-    systemDirective: 'You are Astro Performance Architect. You build ultra-fast, zero-bloat static and SSR websites using Astro 5, component islands, and minimal client-side JavaScript.',
+    description:
+      'Ultra-fast web architecture using component islands, Tailwind CSS, content collections, and 100/100 Lighthouse performance.',
+    systemDirective:
+      'You are Astro Performance Architect. You build ultra-fast, zero-bloat static and SSR websites using Astro 5, component islands, and minimal client-side JavaScript.',
   },
   {
     id: 'minimalist-luxury',
     name: 'Minimalist Clean Luxury',
     badge: 'Editorial Typography',
-    description: 'High-fashion editorial layout, generous negative space, crisp monochrome contrast, and subtle micro-interactions.',
-    systemDirective: 'You are Minimalist Luxury Designer. You focus on exceptional typography hierarchy, generous white space, restrained accent colors, and tactile micro-interactions with zero visual clutter.',
+    description:
+      'High-fashion editorial layout, generous negative space, crisp monochrome contrast, and subtle micro-interactions.',
+    systemDirective:
+      'You are Minimalist Luxury Designer. You focus on exceptional typography hierarchy, generous white space, restrained accent colors, and tactile micro-interactions with zero visual clutter.',
   },
 ];
 
+// eslint-disable-next-line @typescript-eslint/naming-convention
 export const AIStudioModal: React.FC<AIStudioModalProps> = ({
   isOpen,
   onClose,
@@ -68,19 +77,32 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedPreset = localStorage.getItem('zoth_studio_system_preset');
-      if (savedPreset) setSelectedPreset(savedPreset);
+
+      if (savedPreset) {
+        setSelectedPreset(savedPreset);
+      }
 
       const savedTemp = localStorage.getItem('zoth_studio_temperature');
-      if (savedTemp) setTemperature(parseFloat(savedTemp));
+
+      if (savedTemp) {
+        setTemperature(parseFloat(savedTemp));
+      }
 
       const savedCustom = localStorage.getItem('zoth_studio_custom_instructions');
-      if (savedCustom) setCustomInstructions(savedCustom);
+
+      if (savedCustom) {
+        setCustomInstructions(savedCustom);
+      }
     }
   }, []);
 
   const handlePresetSelect = (presetId: string) => {
     setSelectedPreset(presetId);
-    if (soundEnabled) playTactileClick();
+
+    if (soundEnabled) {
+      playTactileClick();
+    }
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('zoth_studio_system_preset', presetId);
     }
@@ -92,12 +114,18 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
       localStorage.setItem('zoth_studio_temperature', temperature.toString());
       localStorage.setItem('zoth_studio_custom_instructions', customInstructions);
     }
-    if (soundEnabled) playSuccessChime();
+
+    if (soundEnabled) {
+      playSuccessChime();
+    }
+
     toast.success('⚡ Google AI Studio developer parameters saved!');
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <AnimatePresence>
@@ -189,9 +217,7 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
                         {preset.badge}
                       </span>
                     </div>
-                    <p className="text-[11px] text-neutral-400 leading-snug line-clamp-2">
-                      {preset.description}
-                    </p>
+                    <p className="text-[11px] text-neutral-400 leading-snug line-clamp-2">{preset.description}</p>
                   </div>
                 );
               })}
@@ -231,7 +257,10 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
                 value={temperature}
                 onChange={(e) => {
                   setTemperature(parseFloat(e.target.value));
-                  if (soundEnabled) playTactileClick();
+
+                  if (soundEnabled) {
+                    playTactileClick();
+                  }
                 }}
                 className="w-full accent-amber-400 cursor-pointer"
               />
@@ -239,8 +268,8 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
                 {temperature <= 0.3
                   ? '🎯 Precise / Deterministic'
                   : temperature <= 0.75
-                  ? '⚖️ Balanced Full-Stack'
-                  : '🎨 Creative Art Direction'}
+                    ? '⚖️ Balanced Full-Stack'
+                    : '🎨 Creative Art Direction'}
               </span>
             </div>
 
@@ -261,7 +290,10 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
                 value={topP}
                 onChange={(e) => {
                   setTopP(parseFloat(e.target.value));
-                  if (soundEnabled) playTactileClick();
+
+                  if (soundEnabled) {
+                    playTactileClick();
+                  }
                 }}
                 className="w-full accent-blue-400 cursor-pointer"
               />
@@ -285,7 +317,10 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
                 value={maxTokens}
                 onChange={(e) => {
                   setMaxTokens(parseInt(e.target.value, 10));
-                  if (soundEnabled) playTactileClick();
+
+                  if (soundEnabled) {
+                    playTactileClick();
+                  }
                 }}
                 className="w-full accent-purple-400 cursor-pointer"
               />
@@ -301,10 +336,10 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
                   telemetry.status === 'streaming'
                     ? 'bg-amber-400 animate-ping'
                     : telemetry.status === 'complete'
-                    ? 'bg-emerald-400'
-                    : telemetry.status === 'error'
-                    ? 'bg-red-400'
-                    : 'bg-neutral-500'
+                      ? 'bg-emerald-400'
+                      : telemetry.status === 'error'
+                        ? 'bg-red-400'
+                        : 'bg-neutral-500'
                 }`}
               />
               <span className="text-neutral-400 uppercase text-[10px] tracking-wider">Status:</span>

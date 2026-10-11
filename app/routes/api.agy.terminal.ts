@@ -22,6 +22,7 @@ function checkTool(name: string, command: string): LocalToolStatus {
       .trim();
 
     let version = '';
+
     const probeEnv = {
       ...process.env,
       PATH: `/home/zoth/.local/bin:/usr/local/bin:/usr/bin:/bin:${process.env.PATH || ''}`,

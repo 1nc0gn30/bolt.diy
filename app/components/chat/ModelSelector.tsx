@@ -405,6 +405,7 @@ export const ModelSelector = ({
 
   useEffect(() => {
     let isMounted = true;
+
     const cloudProviders = Array.from(new Set(CLOUD_MODEL_PRESETS.map((p) => p.providerName)));
 
     Promise.all(
@@ -421,6 +422,7 @@ export const ModelSelector = ({
           }
 
           const data = (await res.json()) as { isSet?: boolean };
+
           return [pName, Boolean(data?.isSet)] as const;
         } catch {
           return [pName, false] as const;

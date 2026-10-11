@@ -1,16 +1,20 @@
-import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
 
 interface NoahGenerationStepperProps {
   isStreaming: boolean;
   activeModel?: string;
 }
 
-export const NoahGenerationStepper: React.FC<NoahGenerationStepperProps> = ({ isStreaming, activeModel = 'Gemini 2.5 Flash' }) => {
+export const NoahGenerationStepper: React.FC<NoahGenerationStepperProps> = ({
+  isStreaming,
+  activeModel = 'Gemini 2.5 Flash',
+}) => {
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
+
     if (isStreaming) {
       setSeconds(0);
       interval = setInterval(() => {
@@ -19,10 +23,13 @@ export const NoahGenerationStepper: React.FC<NoahGenerationStepperProps> = ({ is
     } else {
       setSeconds(0);
     }
+
     return () => clearInterval(interval);
   }, [isStreaming]);
 
-  if (!isStreaming) return null;
+  if (!isStreaming) {
+    return null;
+  }
 
   // Determine stage based on elapsed generation time
   const currentStep = seconds < 3 ? 1 : seconds < 8 ? 2 : seconds < 18 ? 3 : 4;
@@ -45,9 +52,7 @@ export const NoahGenerationStepper: React.FC<NoahGenerationStepperProps> = ({ is
         <div className="flex items-center justify-between border-b border-white/5 pb-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="font-bold text-white tracking-wider">
-              Autonomous WebGen Pipeline Active
-            </span>
+            <span className="font-bold text-white tracking-wider">Autonomous WebGen Pipeline Active</span>
           </div>
           <div className="flex items-center gap-2 text-[11px] text-neutral-400">
             <span className="px-2 py-0.5 rounded border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37]">
@@ -69,8 +74,8 @@ export const NoahGenerationStepper: React.FC<NoahGenerationStepperProps> = ({ is
                   isCompleted
                     ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
                     : isCurrent
-                    ? 'border-blue-500/50 bg-blue-500/15 text-blue-200 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
-                    : 'border-white/5 bg-white/[0.02] text-neutral-500'
+                      ? 'border-blue-500/50 bg-blue-500/15 text-blue-200 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+                      : 'border-white/5 bg-white/[0.02] text-neutral-500'
                 }`}
               >
                 <div className="text-sm shrink-0">
@@ -82,9 +87,7 @@ export const NoahGenerationStepper: React.FC<NoahGenerationStepperProps> = ({ is
                     <span className={step.icon} />
                   )}
                 </div>
-                <span className="text-[10px] font-medium leading-tight truncate">
-                  {step.label}
-                </span>
+                <span className="text-[10px] font-medium leading-tight truncate">{step.label}</span>
               </div>
             );
           })}
