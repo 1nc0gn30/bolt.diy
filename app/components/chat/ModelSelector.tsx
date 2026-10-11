@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import type { KeyboardEvent } from 'react';
+import { LocalModelsDetect } from './LocalModelsDetect';
 import type { ModelInfo } from '~/lib/modules/llm/types';
 import { LOCAL_PROVIDERS, updateProviderSettings } from '~/lib/stores/settings';
 import type { ProviderInfo } from '~/types/model';
@@ -773,6 +774,24 @@ export const ModelSelector = ({
             )}
           </div>
         </div>
+
+        {/* Auto-detected local model servers */}
+        <LocalModelsDetect
+          activeProvider={provider?.name}
+          activeModel={model}
+          onSelect={(providerName, modelName) => {
+            const target =
+              providerList.find((p) => p.name === providerName) ||
+              (PROVIDER_LIST as ProviderInfo[]).find((p) => p.name === providerName);
+
+            if (target) {
+              updateProviderSettings(providerName, { enabled: true });
+              setProvider?.(target);
+            }
+
+            setModel?.(modelName);
+          }}
+        />
 
         {/* Cloud Model Preset Pills */}
         {visibleCloudPresets.length > 0 && (
