@@ -51,6 +51,31 @@ function sanitizeText(text: string): string {
   return sanitized.trim();
 }
 
+const MODEL_LIST_TIMEOUT_MS = 8000;
+
+async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      promise.catch((error) => {
+        logger.warn(`Model list fetch failed: ${error?.message || error}`);
+        return fallback;
+      }),
+      new Promise<T>((resolve) => {
+        timer = setTimeout(() => {
+          logger.warn(`Model list fetch timed out after ${ms}ms`);
+          resolve(fallback);
+        }, ms);
+      }),
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+}
+
 export async function streamText(props: {
   messages: Omit<Message, 'id'>[];
   env?: Env;
@@ -120,15 +145,19 @@ export async function streamText(props: {
   if (!modelDetails) {
     const modelsList = [
       ...(provider.staticModels || []),
-      ...(await LLMManager.getInstance().getModelListFromProvider(provider, {
-        apiKeys,
-        providerSettings,
-        serverEnv: serverEnv as any,
-      })),
+      ...(await withTimeout(
+        LLMManager.getInstance().getModelListFromProvider(provider, {
+          apiKeys,
+          providerSettings,
+          serverEnv: serverEnv as any,
+        }),
+        MODEL_LIST_TIMEOUT_MS,
+        [],
+      )),
     ];
 
     if (!modelsList.length) {
-      throw new Error(`No models found for provider ${provider.name}`);
+      logger.warn(`No model list available for provider ${provider.name}; attempting "${currentModel}" directly`);
     }
 
     modelDetails = modelsList.find((m) => m.name === currentModel);
@@ -144,8 +173,10 @@ export async function streamText(props: {
         name: currentModel,
         label: currentModel,
         provider: provider.name,
-        maxTokenAllowed: 1048576,
-        maxCompletionTokens: 65536,
+
+        // Conservative limits for unlisted models; large-context families get more headroom
+        maxTokenAllowed: /gemini/i.test(currentModel) ? 1048576 : 128000,
+        maxCompletionTokens: /gemini|claude|gpt-5|grok/i.test(currentModel) ? 65536 : 8192,
       };
       logger.warn(
         `Model "${currentModel}" not explicitly listed in static models; using dynamic fallback. Available: ${names}`,

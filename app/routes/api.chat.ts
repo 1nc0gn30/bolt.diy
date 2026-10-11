@@ -3,6 +3,7 @@ import { createDataStream, generateId } from 'ai';
 import type { FileMap } from '~/lib/.server/llm/constants';
 import { createSummary } from '~/lib/.server/llm/create-summary';
 import { createReasoningRewriteTransform } from '~/lib/.server/llm/data-stream-parts';
+import { classifyLLMError } from '~/lib/.server/llm/errors';
 import { MAX_BUILD_SEGMENTS, MAX_UNSTARTED_PASSES, responseNeedsContinue } from '~/lib/.server/llm/response-continue';
 import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import { StreamRecoveryManager } from '~/lib/.server/llm/stream-recovery';
@@ -470,34 +471,22 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
   } catch (error: any) {
     logger.error(error);
 
+    const classified = classifyLLMError(error, error?.provider);
+
     const errorResponse = {
       error: true,
-      message: error.message || 'An unexpected error occurred',
-      statusCode: error.statusCode || 500,
-      isRetryable: error.isRetryable !== false, // Default to retryable unless explicitly false
-      provider: error.provider || 'unknown',
+      message: classified.message,
+      hint: classified.hint,
+      kind: classified.kind,
+      statusCode: classified.statusCode,
+      isRetryable: classified.isRetryable,
+      provider: error?.provider || 'unknown',
     };
-
-    if (error.message?.includes('API key')) {
-      return new Response(
-        JSON.stringify({
-          ...errorResponse,
-          message: 'Invalid or missing API key',
-          statusCode: 401,
-          isRetryable: false,
-        }),
-        {
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-          statusText: 'Unauthorized',
-        },
-      );
-    }
 
     return new Response(JSON.stringify(errorResponse), {
       status: errorResponse.statusCode,
       headers: { 'Content-Type': 'application/json' },
-      statusText: 'Error',
+      statusText: classified.kind === 'auth' ? 'Unauthorized' : 'Error',
     });
   }
 }
