@@ -11,6 +11,12 @@ import { isDev } from './constants';
 const autoUpdater: AppUpdater = (electronUpdater as any).default.autoUpdater;
 
 export async function setupAutoUpdater() {
+  // ZOTHOS WebGen: auto-update is opt-in and only ever checks NullAITech releases (see electron-update.yml)
+  if (process.env.ZOTH_ENABLE_AUTO_UPDATE !== '1') {
+    logger.info('Auto-update disabled (set ZOTH_ENABLE_AUTO_UPDATE=1 to enable)');
+    return;
+  }
+
   // Configure logger
   logger.transports.file.level = 'debug';
   autoUpdater.logger = logger;

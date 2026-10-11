@@ -1,5 +1,5 @@
-appId: com.stackblitz.bolt.diy
-productName: Bolt Local
+appId: tech.nealfrazier.zothos-webgen
+productName: ZOTHOS WebGen
 directories:
   buildResources: build
   output: dist
@@ -55,9 +55,9 @@ npmRebuild: false
 
 publish:
   provider: github
-  owner: Derek-X-Wang
-  repo: bolt.local
-  private: true
+  owner: NullAITech
+  repo: zothos-webgen
+  private: false
   releaseType: release
 
 electronDownload:

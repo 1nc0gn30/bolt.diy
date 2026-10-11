@@ -11,7 +11,7 @@
 
 - **Engineered by**: Neal Frazier Tech ([@1nc0gn30](https://github.com/1nc0gn30))
 - **Platform**: [NullAI Platform](https://nullai.tech)
-- **Attribution**: Inspired by Bolt
+- **Attribution**: Derived from bolt.diy (MIT) — see LICENSE and NOTICE
 
 ---
 
@@ -94,4 +94,4 @@ All prompts, workspace files, and execution state remain inside your browser's I
 
 ## 📜 License
 
-MIT License • Engineered with excellence by **Neal Frazier Tech** & **NullAI Platform**. Inspired by Bolt.
+MIT License • Engineered with excellence by **Neal Frazier Tech** & **NullAI Platform**. Derived from bolt.diy under the MIT License — see NOTICE.

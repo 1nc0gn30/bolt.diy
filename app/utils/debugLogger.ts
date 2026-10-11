@@ -1144,7 +1144,7 @@ export async function downloadDebugLog(filename?: string): Promise<void> {
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = filename || `bolt-debug-${new Date().toISOString().split('T')[0]}.txt`;
+    link.download = filename || `zoth-webgen-debug-${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1160,7 +1160,7 @@ export async function downloadDebugLog(filename?: string): Promise<void> {
 // Create a human-readable summary of the debug data
 function createDebugSummary(data: DebugLogData): string {
   const summary = [
-    '=== BOLT DIY DEBUG LOG SUMMARY ===',
+    '=== ZOTHOS WEBGEN DEBUG LOG SUMMARY ===',
     `Generated: ${new Date(data.timestamp).toLocaleString()}`,
     `Session ID: ${data.sessionId}`,
     '',
