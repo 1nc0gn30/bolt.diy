@@ -10,10 +10,9 @@ export const action: ActionFunction = async ({ request }) => {
       error: 'Updates must be performed manually in a server environment',
       instructions: [
         '1. Navigate to the project directory',
-        '2. Run: git fetch upstream',
-        '3. Run: git pull upstream main',
-        '4. Run: pnpm install',
-        '5. Run: pnpm run build',
+        '2. Run: git pull (from your ZOTHOS WebGen repository)',
+        '3. Run: pnpm install',
+        '4. Run: pnpm run build',
       ],
     },
     { status: 400 },

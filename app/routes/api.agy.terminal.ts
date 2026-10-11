@@ -1,6 +1,53 @@
 import { spawn, execSync } from 'node:child_process';
+import { existsSync, statSync } from 'node:fs';
+import os from 'node:os';
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
+
+const MAX_OUTPUT_BYTES = 2 * 1024 * 1024;
+
+/**
+ * The terminal route executes shell commands, so it must only be reachable from the WebGen UI itself.
+ * Reject cross-origin requests (CSRF from other sites) and require a JSON content type, which forces a CORS preflight.
+ */
+export function isTrustedTerminalRequest(request: Request): { ok: boolean; reason?: string } {
+  const url = new URL(request.url);
+  const origin = request.headers.get('Origin');
+  const secFetchSite = request.headers.get('Sec-Fetch-Site');
+  const contentType = request.headers.get('Content-Type') || '';
+
+  if (!contentType.includes('application/json')) {
+    return { ok: false, reason: 'Content-Type must be application/json' };
+  }
+
+  if (secFetchSite && !['same-origin', 'none'].includes(secFetchSite)) {
+    return { ok: false, reason: 'Cross-site requests are not allowed' };
+  }
+
+  if (origin && origin !== url.origin) {
+    return { ok: false, reason: 'Origin not allowed' };
+  }
+
+  return { ok: true };
+}
+
+function resolveCwd(input: unknown): string {
+  let dir = typeof input === 'string' && input.trim() ? input.trim() : process.cwd();
+
+  if (dir === '~' || dir.startsWith('~/')) {
+    dir = os.homedir() + dir.slice(1);
+  }
+
+  try {
+    if (existsSync(dir) && statSync(dir).isDirectory()) {
+      return dir;
+    }
+  } catch {
+    // fall through
+  }
+
+  return process.cwd();
+}
 
 interface LocalToolStatus {
   name: string;
@@ -119,10 +166,16 @@ export async function loader({ request: _request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const trust = isTrustedTerminalRequest(request);
+
+  if (!trust.ok) {
+    return json({ error: `Forbidden: ${trust.reason}` }, { status: 403 });
+  }
+
   try {
     const body = await request.json<any>();
-    const commandStr = (body.command || '').trim();
-    const workingDir = body.cwd || process.cwd();
+    const commandStr = String(body.command || '').trim();
+    const workingDir = resolveCwd(body.cwd);
     const isStream = Boolean(body.stream || request.headers.get('Accept')?.includes('text/event-stream'));
     const timeoutMs = Math.min(Number(body.timeout) || 60000, 120000);
 
@@ -159,29 +212,66 @@ export async function action({ request }: ActionFunctionArgs) {
           const child = spawn('bash', ['-c', commandStr], {
             cwd: workingDir,
             env,
+            detached: true,
           });
 
-          const timer = setTimeout(() => {
-            child.kill('SIGTERM');
-            send('error', { message: `Command timed out after ${timeoutMs / 1000}s` });
-            send('exit', { code: 124, durationMs: Date.now() - startTime });
+          let closed = false;
+          let bytes = 0;
+
+          const killTree = () => {
+            try {
+              if (child.pid) {
+                process.kill(-child.pid, 'SIGTERM');
+              }
+            } catch {
+              child.kill('SIGTERM');
+            }
+          };
+          const closeOnce = () => {
+            if (closed) {
+              return;
+            }
+
+            closed = true;
 
             try {
               controller.close();
             } catch {
               // Ignore
             }
+          };
+
+          const timer = setTimeout(() => {
+            killTree();
+            send('error', { message: `Command timed out after ${timeoutMs / 1000}s` });
+            send('exit', { code: 124, durationMs: Date.now() - startTime });
+            closeOnce();
           }, timeoutMs);
 
           const proc = child as any;
 
-          proc.stdout.on('data', (chunk: any) => {
-            send('stdout', { text: chunk.toString('utf-8') });
-          });
+          const onChunk = (type: 'stdout' | 'stderr') => (chunk: any) => {
+            if (closed) {
+              return;
+            }
 
-          proc.stderr.on('data', (chunk: any) => {
-            send('stderr', { text: chunk.toString('utf-8') });
-          });
+            bytes += chunk.length;
+
+            if (bytes > MAX_OUTPUT_BYTES) {
+              killTree();
+              send('error', { message: 'Output limit (2 MB) exceeded; command stopped' });
+              send('exit', { code: 137, durationMs: Date.now() - startTime });
+              clearTimeout(timer);
+              closeOnce();
+
+              return;
+            }
+
+            send(type, { text: chunk.toString('utf-8') });
+          };
+
+          proc.stdout.on('data', onChunk('stdout'));
+          proc.stderr.on('data', onChunk('stderr'));
 
           proc.on('error', (err: any) => {
             send('error', { message: err?.message || String(err) });
@@ -189,27 +279,21 @@ export async function action({ request }: ActionFunctionArgs) {
 
           proc.on('close', (code: any) => {
             clearTimeout(timer);
-            send('exit', {
-              code: code ?? 0,
-              durationMs: Date.now() - startTime,
-            });
 
-            try {
-              controller.close();
-            } catch {
-              // Ignore
+            if (!closed) {
+              send('exit', {
+                code: code ?? 0,
+                durationMs: Date.now() - startTime,
+              });
             }
+
+            closeOnce();
           });
 
           request.signal.addEventListener('abort', () => {
             clearTimeout(timer);
-            child.kill('SIGTERM');
-
-            try {
-              controller.close();
-            } catch {
-              // Ignore
-            }
+            killTree();
+            closeOnce();
           });
         },
       });
@@ -255,11 +339,15 @@ export async function action({ request }: ActionFunctionArgs) {
       const proc = child as any;
 
       proc.stdout.on('data', (chunk: any) => {
-        stdout += chunk.toString('utf-8');
+        if (stdout.length < MAX_OUTPUT_BYTES) {
+          stdout += chunk.toString('utf-8');
+        }
       });
 
       proc.stderr.on('data', (chunk: any) => {
-        stderr += chunk.toString('utf-8');
+        if (stderr.length < MAX_OUTPUT_BYTES) {
+          stderr += chunk.toString('utf-8');
+        }
       });
 
       proc.on('close', (code: any) => {
