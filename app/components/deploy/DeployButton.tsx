@@ -10,7 +10,6 @@ import { GitLabDeploymentDialog } from '~/components/deploy/GitLabDeploymentDial
 import { useNetlifyDeploy } from '~/components/deploy/NetlifyDeploy.client';
 import { useVercelDeploy } from '~/components/deploy/VercelDeploy.client';
 import { isGitLabConnected } from '~/lib/stores/gitlabConnection';
-import { isProLicensedStore, openPaywall } from '~/lib/stores/license';
 import { netlifyConnection } from '~/lib/stores/netlify';
 import { streamingState } from '~/lib/stores/streaming';
 import { vercelConnection } from '~/lib/stores/vercel';
@@ -51,11 +50,6 @@ export const DeployButton = ({
   const [gitlabProjectName, setGitlabProjectName] = useState('');
 
   const handleVercelDeployClick = async () => {
-    if (!isProLicensedStore.get()) {
-      openPaywall();
-      return;
-    }
-
     setIsDeploying(true);
     setDeployingTo('vercel');
 
@@ -72,11 +66,6 @@ export const DeployButton = ({
   };
 
   const handleNetlifyDeployClick = async () => {
-    if (!isProLicensedStore.get()) {
-      openPaywall();
-      return;
-    }
-
     setIsDeploying(true);
     setDeployingTo('netlify');
 
@@ -93,11 +82,6 @@ export const DeployButton = ({
   };
 
   const handleGitHubDeployClick = async () => {
-    if (!isProLicensedStore.get()) {
-      openPaywall();
-      return;
-    }
-
     setIsDeploying(true);
     setDeployingTo('github');
 
@@ -120,11 +104,6 @@ export const DeployButton = ({
   };
 
   const handleGitLabDeployClick = async () => {
-    if (!isProLicensedStore.get()) {
-      openPaywall();
-      return;
-    }
-
     setIsDeploying(true);
     setDeployingTo('gitlab');
 
