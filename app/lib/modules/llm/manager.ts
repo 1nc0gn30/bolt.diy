@@ -7,6 +7,17 @@ import { createScopedLogger } from '~/utils/logger';
 
 const logger = createScopedLogger('LLMManager');
 
+function logDynamicModelFailure(providerName: string, err: unknown) {
+  const message = err instanceof Error ? err.message : String(err);
+
+  if (message.includes('Missing Api Key')) {
+    logger.info(`${providerName} has no API key; skipping remote model list`);
+    return;
+  }
+
+  logger.error(`Error getting dynamic models ${providerName} :`, err);
+}
+
 /*
  * Providers exposed to the app. Every other provider in ./registry stays
  * unregistered, so its models never reach the model picker.
@@ -128,7 +139,7 @@ export class LLMManager {
               return models;
             })
             .catch((err) => {
-              logger.error(`Error getting dynamic models ${provider.name} :`, err);
+              logDynamicModelFailure(provider.name, err);
               return [];
             });
 
@@ -195,7 +206,7 @@ export class LLMManager {
         return models;
       })
       .catch((err) => {
-        logger.error(`Error getting dynamic models ${provider.name} :`, err);
+        logDynamicModelFailure(provider.name, err);
         return [];
       });
 
