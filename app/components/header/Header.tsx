@@ -76,7 +76,7 @@ export function Header() {
           type="button"
           onClick={() => soulPanelOpenAtom.set(true)}
           className="inline-flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-full border border-accent-500/40 bg-accent-500/10 hover:bg-accent-500/20 text-accent-200 text-xs font-mono font-medium transition-all cursor-pointer shrink-0"
-          title="Open WebGen soul and memory"
+          title="Open Zoth Bolt soul and memory"
         >
           <span className="i-ph:brain text-sm" />
           <span className="hidden sm:inline">Soul</span>

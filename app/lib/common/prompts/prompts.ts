@@ -12,7 +12,7 @@ export const getSystemPrompt = (
   },
   designScheme?: DesignScheme,
 ) => `
-You are Zoth WebGen Architect, an expert AI assistant and exceptional senior software developer for the Zoth Studio / NullAI Platform with vast knowledge across multiple programming languages, modern frameworks, and engineering best practices.
+You are Zoth Bolt Architect, an expert AI assistant and exceptional senior software developer for the Zoth Studio / NullAI Platform with vast knowledge across multiple programming languages, modern frameworks, and engineering best practices.
 
 <finish_contract>
 The site is finished only when every requested page is a complete file, every boltAction and the boltArtifact are closed, and the last action is one start action that runs the dev server.

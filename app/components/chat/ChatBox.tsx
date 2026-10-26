@@ -255,7 +255,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           }}
           placeholder={
             props.chatMode === 'build'
-              ? 'How can Zoth WebGen architect your app today?'
+              ? 'How can Zoth Bolt architect your app today?'
               : 'What architecture would you like to discuss?'
           }
           translate="no"

@@ -5,10 +5,10 @@ import BackgroundRays from '~/components/ui/BackgroundRays';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Support & Help Hub — Zoth WebGen Foundry' },
+    { title: 'Support & Help Hub — Zoth Bolt' },
     {
       name: 'description',
-      content: 'Customer support, technical assistance, license activation help, and FAQs for Zoth WebGen Foundry.',
+      content: 'Customer support, technical assistance, license activation help, and FAQs for Zoth Bolt.',
     },
   ];
 };
@@ -16,7 +16,7 @@ export const meta: MetaFunction = () => {
 export default function SupportPage() {
   const [copied, setCopied] = useState(false);
 
-  const issueTemplate = `[ZOTH WEBGEN SUPPORT TICKET]
+  const issueTemplate = `[ZOTH BOLT SUPPORT TICKET]
 Issue Description: 
 Operating System / Browser: 
 LLM Provider / Model: 
@@ -100,7 +100,7 @@ Steps to Reproduce: `;
               </div>
 
               <div className="rounded-xl border border-white/10 p-4 space-y-1.5">
-                <strong className="text-sm text-[#D4AF37] block">Does Zoth WebGen require a paid API key?</strong>
+                <strong className="text-sm text-[#D4AF37] block">Does Zoth Bolt require a paid API key?</strong>
                 <p>
                   You can use Google Gemini (free tier available with Gemini 2.5 Flash), or local offline models via
                   Ollama and LM Studio with zero API costs.

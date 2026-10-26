@@ -8,10 +8,10 @@ import BackgroundRays from '~/components/ui/BackgroundRays';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Zoth WebGen — Git Repository Import' },
+    { title: 'Zoth Bolt — Git Repository Import' },
     {
       name: 'description',
-      content: 'Import, fork, and architect repositories directly in-browser with Zoth WebGen by Neal Frazier Tech.',
+      content: 'Import, fork, and architect repositories directly in-browser with Zoth Bolt by Neal Frazier Tech.',
     },
   ];
 };

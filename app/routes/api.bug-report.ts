@@ -114,7 +114,7 @@ function formatIssueBody(data: z.infer<typeof bugReportSchema>): string {
     }
 
     if (data.environmentInfo.boltVersion) {
-      body += `- Zoth WebGen: ${data.environmentInfo.boltVersion}\n`;
+      body += `- Zoth Bolt: ${data.environmentInfo.boltVersion}\n`;
     }
 
     if (data.environmentInfo.aiProviders) {
@@ -136,7 +136,7 @@ function formatIssueBody(data: z.infer<typeof bugReportSchema>): string {
     body += `**Contact:** ${data.contactEmail}\n\n`;
   }
 
-  body += '---\n*Submitted via Zoth WebGen bug report feature*';
+  body += '---\n*Submitted via Zoth Bolt bug report feature*';
 
   return body;
 }

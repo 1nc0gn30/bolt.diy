@@ -53,7 +53,7 @@ export const ProPaywallModal: React.FC = () => {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 px-3 py-1 text-xs font-mono font-medium uppercase tracking-wider text-[#D4AF37]">
               <span>👑</span>
-              <span>Zoth WebGen Pro Lifetime Access</span>
+              <span>Zoth Bolt Pro Lifetime Access</span>
             </div>
 
             <h3 className="text-xl font-extrabold tracking-tight">Unlock the Full Sovereign Foundry</h3>
@@ -156,7 +156,7 @@ export const ProPaywallModal: React.FC = () => {
             </div>
 
             <p className="text-xs text-bolt-elements-textSecondary">
-              Enter your Stripe receipt email, transaction hash, or license key to permanently activate Zoth WebGen Pro
+              Enter your Stripe receipt email, transaction hash, or license key to permanently activate Zoth Bolt Pro
               on this device:
             </p>
 

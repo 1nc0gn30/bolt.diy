@@ -4,10 +4,10 @@ import BackgroundRays from '~/components/ui/BackgroundRays';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Terms of Service — Zoth WebGen Foundry' },
+    { title: 'Terms of Service — Zoth Bolt' },
     {
       name: 'description',
-      content: 'Terms of service and lifetime commercial license terms for Zoth WebGen Foundry by Neal Frazier Tech.',
+      content: 'Terms of service and lifetime commercial license terms for Zoth Bolt by Neal Frazier Tech.',
     },
   ];
 };
@@ -36,7 +36,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="text-lg font-bold text-[#D4AF37]">1. Lifetime Commercial License Grant</h2>
               <p>
-                Upon purchasing a lifetime license to <strong>Zoth WebGen Foundry</strong> via Stripe or DePay Solana,
+                Upon purchasing a lifetime license to <strong>Zoth Bolt</strong> via Stripe or DePay Solana,
                 Neal Frazier Tech grants you a perpetual, non-exclusive, worldwide commercial license to use the
                 software to architect, generate, compile, and export web applications for personal, commercial, client,
                 and internal enterprise projects.
@@ -46,7 +46,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="text-lg font-bold text-[#D4AF37]">2. 100% Client-Side In-Browser Execution</h2>
               <p>
-                Zoth WebGen operates client-side inside your browser via WebContainer technology. You acknowledge that
+                Zoth Bolt operates client-side inside your browser via WebContainer technology. You acknowledge that
                 code execution, AST transformations, and file generation take place locally on your hardware. Neal
                 Frazier Tech does not operate backend servers that host or execute your generated applications.
               </p>
@@ -70,7 +70,7 @@ export default function TermsPage() {
               <h2 className="text-lg font-bold text-[#D4AF37]">4. Ownership of Generated Output</h2>
               <p>
                 You retain 100% complete, unencumbered ownership and intellectual property rights over any source code,
-                media, components, configurations, and applications synthesized or exported through Zoth WebGen. Neal
+                media, components, configurations, and applications synthesized or exported through Zoth Bolt. Neal
                 Frazier Tech claims zero royalties, equity, or rights in your creations.
               </p>
             </section>
@@ -78,7 +78,7 @@ export default function TermsPage() {
             <section className="space-y-3">
               <h2 className="text-lg font-bold text-[#D4AF37]">5. Attribution & Heritage</h2>
               <p>
-                Zoth WebGen Foundry is engineered by Neal Frazier Tech (@1nc0gn30) as part of the NullAI Platform. The
+                Zoth Bolt is engineered by Neal Frazier Tech (@1nc0gn30) as part of the NullAI Platform. The
                 platform architecture is inspired by Bolt and WebContainer open-source foundations under the MIT
                 License.
               </p>

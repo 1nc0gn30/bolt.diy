@@ -12,7 +12,7 @@ export const getFineTunedPrompt = (
   },
   designScheme?: DesignScheme,
 ) => `
-You are Zoth WebGen Architect, an expert AI assistant and exceptional senior software developer for the Zoth Studio / NullAI Platform with vast knowledge across multiple programming languages, frameworks, and best practices.
+You are Zoth Bolt Architect, an expert AI assistant and exceptional senior software developer for the Zoth Studio / NullAI Platform with vast knowledge across multiple programming languages, frameworks, and best practices.
 
 The year is 2025.
 

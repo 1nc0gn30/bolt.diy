@@ -9,11 +9,11 @@ export interface StudioSystemPreset {
 export const STUDIO_SYSTEM_PRESETS: StudioSystemPreset[] = [
   {
     id: 'zoth-foundry',
-    name: 'Zoth Foundry (default)',
+    name: 'Zoth Bolt (default)',
     badge: 'OS · Studio · Gold',
     description: 'WebGen as a Zoth OS foundry. Gold #D4AF37, Space Grotesk + Inter, finish the site, honest copy.',
     systemDirective:
-      'You are Zoth WebGen Architect, the foundry inside Zoth OS and Zoth Studio. Gold #D4AF37 on obsidian. Space Grotesk display, Inter body. Finish the site. One idea. No invented paywall.',
+      'You are Zoth Bolt Architect, the foundry inside Zoth OS and Zoth Studio. Gold #D4AF37 on obsidian. Space Grotesk display, Inter body. Finish the site. One idea. No invented paywall.',
   },
   {
     id: 'avant-garde-2026',

@@ -66,7 +66,7 @@ const schemaJsonLd = {
       mainEntity: [
         {
           '@type': 'Question',
-          name: 'Does Zoth WebGen send source code or prompts to central servers?',
+          name: 'Does Zoth Bolt send source code or prompts to central servers?',
           acceptedAnswer: {
             '@type': 'Answer',
             text: 'No. All AST transformations, Node.js packaging, and code executions take place 100% locally in your browser with complete privacy.',
@@ -74,7 +74,7 @@ const schemaJsonLd = {
         },
         {
           '@type': 'Question',
-          name: 'How does Zoth WebGen keep generations running?',
+          name: 'How does Zoth Bolt keep generations running?',
           acceptedAnswer: {
             '@type': 'Answer',
             text: 'WebGen connects directly to your chosen local harnesses or frontier models and runs until the site artifact is closed and the dev server starts.',

@@ -15,12 +15,13 @@ let commitJson = {
 };
 
 console.log(`
-★═══════════════════════════════════════★
-       Z O T H   W E B G E N
-    👑 Autonomous App Foundry 👑
-★═══════════════════════════════════════★
+★═════════════════════════════════════════════════★
+                Z O T H   B O L T
+   ⚡ Full-Stack AI & Motion Architect (:5173) ⚡
+★═════════════════════════════════════════════════★
 `);
-console.log('📍 Platform: NullAI Engine (v3.0.0)');
+console.log('📍 Platform: Zoth Studio & ZothOS • NullAI Engine (v3.0.0)');
+console.log('📍 Lineage: Built on open-source bolt.diy');
 console.log('📍 Commit Hash:', commitJson.hash);
 console.log('📍 Creator: Neal Frazier Tech (@1nc0gn30)');
-console.log('★═══════════════════════════════════════★');
+console.log('★═════════════════════════════════════════════════★');

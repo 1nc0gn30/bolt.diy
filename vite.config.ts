@@ -5,6 +5,8 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { optimizeCssModules } from 'vite-plugin-optimize-css-modules';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import * as dotenv from 'dotenv';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Load environment variables from multiple files
 dotenv.config({ path: '.env.local' });
@@ -58,6 +60,48 @@ export default defineConfig((config) => {
         '@ai-sdk/openai',
         '@ai-sdk/google',
         '@ai-sdk/anthropic',
+        '@ai-sdk/amazon-bedrock',
+        '@ai-sdk/cerebras',
+        '@ai-sdk/cohere',
+        '@ai-sdk/deepseek',
+        '@ai-sdk/fireworks',
+        '@ai-sdk/mistral',
+        '@openrouter/ai-sdk-provider',
+        'ollama-ai-provider',
+        '@codemirror/lang-cpp',
+        '@codemirror/lang-css',
+        '@codemirror/lang-html',
+        '@codemirror/lang-javascript',
+        '@codemirror/lang-json',
+        '@codemirror/lang-markdown',
+        '@codemirror/lang-python',
+        '@codemirror/lang-sass',
+        '@codemirror/lang-vue',
+        '@codemirror/lang-wast',
+        '@uiw/codemirror-theme-vscode',
+        '@radix-ui/react-collapsible',
+        '@radix-ui/react-context-menu',
+        '@radix-ui/react-popover',
+        '@radix-ui/react-scroll-area',
+        '@xterm/addon-fit',
+        '@xterm/addon-web-links',
+        '@xterm/xterm',
+        'chart.js',
+        'class-variance-authority',
+        'date-fns',
+        'istextorbinary',
+        'jspdf',
+        'path-browserify',
+        'react-chartjs-2',
+        'react-icons/bi',
+        'react-icons/bs',
+        'react-icons/fa',
+        'react-icons/si',
+        'react-icons/tb',
+        'react-qrcode-logo',
+        'rehype-sanitize',
+        'unist-util-visit',
+        'vite-plugin-node-polyfills/shims/process',
         'react-dnd',
         'react-dnd-html5-backend',
         'remix-island',
@@ -110,6 +154,7 @@ export default defineConfig((config) => {
       }),
       UnoCSS(),
       tsconfigPaths(),
+      zothDepsMimeGuardPlugin(),
       chrome129IssuePlugin(),
       config.mode === 'production' && optimizeCssModules({ apply: 'build' }),
     ],
@@ -134,6 +179,51 @@ export default defineConfig((config) => {
     },
   };
 });
+
+function zothDepsMimeGuardPlugin() {
+  return {
+    name: 'zothDepsMimeGuardPlugin',
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url && req.url.startsWith('/node_modules/.vite/deps/')) {
+          const cleanPath = req.url.split('?')[0];
+          const fileName = path.basename(cleanPath);
+          const viteDir = path.resolve(process.cwd(), 'node_modules/.vite');
+          const primaryFile = path.join(viteDir, 'deps', fileName);
+
+          let resolvedFile: string | null = null;
+          if (fs.existsSync(primaryFile)) {
+            resolvedFile = primaryFile;
+          } else if (fs.existsSync(viteDir)) {
+            const entries = fs.readdirSync(viteDir);
+            for (const entry of entries) {
+              if (entry.startsWith('deps')) {
+                const candidate = path.join(viteDir, entry, fileName);
+                if (fs.existsSync(candidate)) {
+                  resolvedFile = candidate;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (resolvedFile) {
+            const isMap = fileName.endsWith('.map');
+            res.statusCode = 200;
+            res.setHeader(
+              'Content-Type',
+              isMap ? 'application/json; charset=utf-8' : 'application/javascript; charset=utf-8',
+            );
+            res.setHeader('Cache-Control', 'no-cache');
+            res.end(fs.readFileSync(resolvedFile));
+            return;
+          }
+        }
+        next();
+      });
+    },
+  };
+}
 
 function chrome129IssuePlugin() {
   return {

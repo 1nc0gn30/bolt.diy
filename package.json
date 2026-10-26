@@ -1,6 +1,6 @@
 {
   "name": "zoth-webgen",
-  "description": "Zoth WebGen Foundry — Autonomous In-Browser Full-Stack Application Architect",
+  "description": "Zoth Bolt — Autonomous Full-Stack AI & Motion Architect (built on open-source bolt.diy for Zoth Studio & ZothOS)",
   "private": true,
   "license": "MIT",
   "sideEffects": false,

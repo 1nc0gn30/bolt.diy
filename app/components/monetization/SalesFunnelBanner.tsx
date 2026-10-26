@@ -24,7 +24,7 @@ export const SalesFunnelBanner: React.FC = () => {
             <h2 className="text-base md:text-lg font-extrabold tracking-tight text-bolt-elements-textPrimary">
               Supercharge Your Workflow with{' '}
               <span className="bg-gradient-to-r from-[#F5E6AB] to-[#D4AF37] bg-clip-text text-transparent">
-                Zoth WebGen Pro
+                Zoth Bolt Pro
               </span>
             </h2>
             <p className="text-xs text-bolt-elements-textSecondary max-w-xl leading-relaxed">

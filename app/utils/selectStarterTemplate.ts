@@ -235,7 +235,7 @@ export default defineConfig({
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zoth WebGen Foundry App</title>
+    <title>Zoth Bolt App</title>
   </head>
   <body class="bg-[#08080B] text-white">
     <div id="root"></div>
@@ -271,7 +271,7 @@ export default function App() {
       <div className="max-w-xl w-full rounded-2xl border border-white/10 bg-white/[0.03] p-8 backdrop-blur-xl shadow-2xl text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-mono mb-4">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Zoth WebGen Ready</span>
+          <span>Zoth Bolt Ready</span>
         </div>
         <h1 className="text-3xl font-bold tracking-tight mb-3">Architecting Your Vision</h1>
         <p className="text-neutral-400 text-sm mb-6 leading-relaxed">

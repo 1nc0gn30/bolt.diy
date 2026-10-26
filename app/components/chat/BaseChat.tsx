@@ -421,8 +421,20 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   <h1 className="font-space-grotesk text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-bolt-elements-textPrimary mb-2 animate-fade-in">
                     Zoth Bolt Full-Stack Architect
                   </h1>
-                  <p className="text-xs sm:text-sm lg:text-base mb-2 text-bolt-elements-textSecondary animate-fade-in animation-delay-200 max-w-[44rem] mx-auto">
+                  <p className="text-xs sm:text-sm lg:text-base mb-1.5 text-bolt-elements-textSecondary animate-fade-in animation-delay-200 max-w-[44rem] mx-auto">
                     Build Awwwards-grade full-stack apps &amp; 15s motion edits with any cloud LLM, Ollama model, or local CLI agent (AGY, Hermes, Grok, Claude, OpenCode, Cline, Aider) plus 200k+ free SVG &amp; pixel-art assets.
+                  </p>
+                  <p className="text-[11px] font-mono text-bolt-elements-textTertiary mb-2 animate-fade-in animation-delay-200">
+                    Supercharged for <span className="text-[#D4AF37]">Zoth Studio</span> &amp; <span className="text-[#D4AF37]">ZothOS</span> • Proudly built on the open-source{' '}
+                    <a
+                      href="https://github.com/stackblitz-labs/bolt.diy"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-bolt-elements-textSecondary hover:text-[#D4AF37] underline underline-offset-2"
+                    >
+                      bolt.diy
+                    </a>{' '}
+                    foundation
                   </p>
                 </div>
                 <ClientOnly>
@@ -628,8 +640,20 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                       rel="noreferrer"
                       className="hover:text-bolt-elements-textSecondary transition-colors"
                     >
-                      Studio
+                      Zoth Studio
                     </a>
+                    <span>•</span>
+                    <span className="text-bolt-elements-textTertiary/80">
+                      Powered by open-source{' '}
+                      <a
+                        href="https://github.com/stackblitz-labs/bolt.diy"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-[#D4AF37] underline underline-offset-2 transition-colors"
+                      >
+                        bolt.diy
+                      </a>
+                    </span>
                   </div>
                   <div className="flex items-center justify-center gap-3 text-[11px] text-bolt-elements-textTertiary/80">
                     <a href="/terms" className="hover:text-white transition-colors">
