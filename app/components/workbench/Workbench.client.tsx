@@ -12,6 +12,7 @@ import { EditorPanel } from './EditorPanel';
 
 import type { ElementInfo } from './Inspector';
 import { Preview } from './Preview';
+import { ZothGuardrailBar } from './ZothGuardrailBar';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
 import {
   type OnChangeCallback as OnEditorChange,
@@ -480,6 +481,7 @@ export const Workbench = memo(
                     }}
                   />
                 </div>
+                <ZothGuardrailBar />
                 <div className="relative flex-1 overflow-hidden">
                   <View initial={{ x: '0%' }} animate={{ x: selectedView === 'code' ? '0%' : '-100%' }}>
                     <EditorPanel

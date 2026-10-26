@@ -256,6 +256,21 @@ const TOOLS = [
       properties: {},
     },
   },
+  {
+    name: 'zoth_bolt_deconstruct_live_url',
+    description:
+      'Deconstructs any live public URL into its headings, navigation structure, dominant hex color palette, font families, and AEO readiness, returning a ready-to-run Zoth Bolt redesign blueprint.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: 'Live website URL to analyze and remix (e.g. "https://linear.app", "https://zoth.nullai.tech").',
+        },
+      },
+      required: ['url'],
+    },
+  },
 ];
 
 async function callWebGen(action, payload = {}) {
@@ -397,6 +412,16 @@ async function handleToolCall(name, args) {
     case 'zoth_bolt_list_motion_templates': {
       const result = await callWebGen('list_motion_templates');
       return JSON.stringify(result, null, 2);
+    }
+
+    case 'zoth_bolt_deconstruct_live_url': {
+      const res = await fetch(`${WEBGEN_BASE_URL}/api/zoth/url-blueprint`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: args.url || 'https://zoth.nullai.tech' }),
+      });
+      const data = await res.json();
+      return JSON.stringify(data, null, 2);
     }
 
     default:
