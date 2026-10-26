@@ -207,6 +207,45 @@ Sitemap: https://zoth.nullai.tech/sitemap.xml
     return null;
   }
 
+  const handleQuickThemeSwap = async (accentHex: string, themeName: string) => {
+    try {
+      const entries = Object.entries(files || {});
+      const htmlEntry = entries.find(([p, d]) => p.endsWith('index.html') && d?.type === 'file');
+
+      if (!htmlEntry) {
+        return;
+      }
+
+      const [htmlPath, htmlDirent] = htmlEntry;
+      let html = (htmlDirent as any).content || '';
+
+      const themeOverrideCss = `
+  /* Zoth Bolt Live Token Override: ${themeName} */
+  :root { --accent: ${accentHex} !important; --primary: ${accentHex} !important; }
+  html, body { overflow-x: hidden; scroll-behavior: smooth; }
+  `;
+
+      if (/<\/style>/i.test(html)) {
+        html = html.replace(/<\/style>/i, `${themeOverrideCss}\n</style>`);
+      } else if (/<\/head>/i.test(html)) {
+        html = html.replace(/<\/head>/i, `<style>${themeOverrideCss}</style>\n</head>`);
+      }
+
+      workbenchStore.setDocuments({
+        ...workbenchStore.documents.get(),
+        [htmlPath]: {
+          value: html,
+          isBinary: false,
+          filePath: htmlPath,
+        },
+      });
+      await workbenchStore.saveFile(htmlPath);
+      toast.success(`🎨 Applied Live Token Theme: ${themeName} (${accentHex})`);
+    } catch {
+      toast.info('Theme token ready.');
+    }
+  };
+
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-[#0B0D14] border-b border-white/10 text-xs font-mono">
       <div className="flex items-center gap-1.5 flex-wrap">
@@ -231,15 +270,35 @@ Sitemap: https://zoth.nullai.tech/sitemap.xml
           </span>
         ))}
       </div>
-      {audit.score < 100 && (
-        <button
-          type="button"
-          onClick={handleAutoHealWorkspace}
-          className="px-2.5 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-[10px] transition-colors cursor-pointer"
-        >
-          🛠️ Auto-Heal to 100/100 Guardrail
-        </button>
-      )}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 border border-white/10">
+          <span className="text-[10px] text-white/60">🎨 Theme:</span>
+          {[
+            { hex: '#D4AF37', name: 'Sovereign Gold' },
+            { hex: '#10B981', name: 'Botanical Emerald' },
+            { hex: '#38BDF8', name: 'Cyber Cyan' },
+            { hex: '#C084FC', name: 'Nocturnal Violet' },
+          ].map((sw) => (
+            <button
+              key={sw.hex}
+              type="button"
+              onClick={() => handleQuickThemeSwap(sw.hex, sw.name)}
+              title={`Instant Theme Swap: ${sw.name}`}
+              className="w-3.5 h-3.5 rounded-full border border-white/30 hover:scale-125 transition-transform cursor-pointer"
+              style={{ background: sw.hex }}
+            />
+          ))}
+        </div>
+        {audit.score < 100 && (
+          <button
+            type="button"
+            onClick={handleAutoHealWorkspace}
+            className="px-2.5 py-1 rounded bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-[10px] transition-colors cursor-pointer"
+          >
+            🛠️ Auto-Heal to 100/100 Guardrail
+          </button>
+        )}
+      </div>
     </div>
   );
 };

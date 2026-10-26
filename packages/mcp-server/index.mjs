@@ -271,6 +271,25 @@ const TOOLS = [
       required: ['url'],
     },
   },
+  {
+    name: 'zoth_bolt_self_critique_and_polish',
+    description:
+      'Runs the Zoth Bolt Design Director 100-point rubric against an HTML/app string (scoring Hierarchy, Responsiveness, Visual Craft, Interactivity, and AEO/Conversion) and optionally returns auto-polished HTML with fluid clamp() typography and overflow guards.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        html: {
+          type: 'string',
+          description: 'HTML document string to score and polish.',
+        },
+        autoPolish: {
+          type: 'boolean',
+          description: 'If true, returns auto-polished HTML alongside the 100-point score.',
+        },
+      },
+      required: ['html'],
+    },
+  },
 ];
 
 async function callWebGen(action, payload = {}) {
@@ -419,6 +438,16 @@ async function handleToolCall(name, args) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: args.url || 'https://zoth.nullai.tech' }),
+      });
+      const data = await res.json();
+      return JSON.stringify(data, null, 2);
+    }
+
+    case 'zoth_bolt_self_critique_and_polish': {
+      const res = await fetch(`${WEBGEN_BASE_URL}/api/zoth/self-critique`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html: args.html || '', autoPolish: Boolean(args.autoPolish) }),
       });
       const data = await res.json();
       return JSON.stringify(data, null, 2);
