@@ -402,7 +402,216 @@ function createCliLanguageModel(
   };
 }
 
+function createInstantBoltArchitectModel(): LanguageModelV1 {
+  const buildArtifactText = (promptText: string) => {
+    const userMatch = promptText.match(/\[USER\]\s*([\s\S]*)$/i);
+    const rawUser = (userMatch ? userMatch[1] : promptText).trim();
+    const firstLine = rawUser.split('\n').find((l) => l.trim().length > 3) || 'Zoth Bolt Sovereign Studio';
+    const title = firstLine.replace(/[#*`]/g, '').trim().slice(0, 56) || 'Zoth Bolt Sovereign Studio';
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'zoth-bolt-app';
+
+    const pkgJson = JSON.stringify(
+      {
+        name: slug,
+        private: true,
+        version: '1.0.0',
+        type: 'module',
+        scripts: {
+          dev: 'vite --host 0.0.0.0',
+          build: 'vite build',
+        },
+        devDependencies: {
+          vite: '^6.0.0',
+        },
+      },
+      null,
+      2,
+    );
+
+    const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title} — Engineered with Zoth Bolt</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #08080B; --surface: #11131C; --gold: #D4AF37; --gold-soft: #F5E6AB; --cyan: #38BDF8; --emerald: #10B981; --text: #F8FAFC; --muted: #94A3B8; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; border-bottom: 1px solid rgba(212,175,55,0.22); background: rgba(11,13,20,0.9); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 40; flex-wrap: wrap; gap: 0.75rem; }
+    .brand { display: flex; align-items: center; gap: 0.75rem; font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.15rem; letter-spacing: 0.03em; }
+    .pill { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; padding: 0.25rem 0.65rem; border-radius: 999px; border: 1px solid rgba(212,175,55,0.4); color: var(--gold-soft); background: rgba(212,175,55,0.12); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    .hero { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 2rem; align-items: center; margin-bottom: 2.5rem; }
+    @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } }
+    h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2rem, 4vw, 3.25rem); line-height: 1.08; margin: 0.85rem 0; }
+    .subtitle { color: var(--muted); font-size: 1.02rem; line-height: 1.65; max-width: 58ch; margin-bottom: 1.5rem; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .btn { cursor: pointer; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.82rem; padding: 0.75rem 1.25rem; border-radius: 0.75rem; border: 1px solid rgba(212,175,55,0.45); background: linear-gradient(135deg, #D4AF37, #9A7B1C); color: #08080B; transition: transform 0.15s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-ghost { background: rgba(255,255,255,0.04); color: var(--text); border-color: rgba(255,255,255,0.14); }
+    .stage-card { background: var(--surface); border: 1px solid rgba(212,175,55,0.28); border-radius: 1.25rem; padding: 1.25rem; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.55); }
+    canvas#motionCanvas { width: 100%; height: 220px; display: block; border-radius: 0.85rem; background: #05060A; border: 1px solid rgba(255,255,255,0.08); }
+    .bento { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 2rem; }
+    .card { background: var(--surface); border: 1px solid rgba(255,255,255,0.09); border-radius: 1.1rem; padding: 1.5rem; transition: border-color 0.2s; }
+    .card:hover { border-color: var(--gold); }
+    .card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; margin: 0.65rem 0 0.4rem; }
+    .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="26" height="26" shape-rendering="crispEdges"><path fill="#F5E6AB" d="M9 1h3v2H10v2H9v2h4v2h-2v2H9v2H7v2H5v-3h2V9H4V7h2V5h2V3h1z"/><path fill="#D4AF37" d="M8 2h2v2H8v2H6v2h4v1H8v2H6v3H5v-2h2v-2H3V8h2V6h2V4h1z"/></svg>
+      <span>${title}</span>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <span class="pill">⚡ ZOTH BOLT ARCHITECT</span>
+      <span class="pill" style="border-color:rgba(16,185,129,0.4);color:#6EE7B7;background:rgba(16,185,129,0.1);">60FPS SHADER READY</span>
+    </div>
+  </header>
+  <main class="container">
+    <section class="hero">
+      <div>
+        <span class="pill">BESPOKE SVG · PIXEL ART · 15S MOTION EDIT</span>
+        <h1>${title}</h1>
+        <p class="subtitle">Synthesized with Zoth Bolt featuring multi-layered vector SVG emblems, crisp 16x16 pixel-art sprites, and an interactive @teknium Uncommon Web 60fps shader stage.</p>
+        <div class="btn-row">
+          <button class="btn" id="modeBtn">Switch Shader Mode (Braille / Dither / ASCII)</button>
+          <button class="btn btn-ghost" id="pulseBtn">Trigger Telemetry Pulse</button>
+        </div>
+      </div>
+      <div class="stage-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.65rem;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--gold-soft);">
+          <span id="shaderLabel">MODE // BRAILLE WAVE (U+2800)</span>
+          <span>15S SHOWREEL ENGINE</span>
+        </div>
+        <canvas id="motionCanvas" width="520" height="220"></canvas>
+      </div>
+    </section>
+    <section class="bento">
+      <article class="card">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="48" height="48"><circle cx="60" cy="60" r="52" fill="#0B0D14" stroke="#D4AF37" stroke-width="3"/><path d="M66 24 L38 64 H58 L52 96 L84 54 H62 Z" fill="#D4AF37"/></svg>
+        <h3>Interactive Architecture</h3>
+        <p>100% client-side reactive state, zero blocking modals, and responsive 390px-to-1440px grid choreography.</p>
+      </article>
+      <article class="card">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="48" height="48"><circle cx="60" cy="60" r="52" fill="#06140E" stroke="#10B981" stroke-width="3"/><path d="M60 22 C88 28 96 58 60 98 C24 58 32 28 60 22 Z" fill="#10B981" opacity="0.85"/></svg>
+        <h3>Curated SVG &amp; Pixel Vault</h3>
+        <p>Embedded multi-layered vector gradients, crisp 16-bit pixel sprites, and Iconify 200k+ icon integration.</p>
+      </article>
+      <article class="card">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="48" height="48"><circle cx="60" cy="60" r="48" fill="none" stroke="#38BDF8" stroke-width="3" stroke-dasharray="10 6"/><circle cx="60" cy="60" r="10" fill="#38BDF8"/></svg>
+        <h3>Live Motion Choreography</h3>
+        <p>Deterministic 60fps HTML5 canvas shader with Braille, Ordered Bayer Dither, and Constellation modes.</p>
+      </article>
+    </section>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>`;
+
+    const mainJs = `const canvas = document.getElementById('motionCanvas');
+const ctx = canvas.getContext('2d');
+const modes = ['BRAILLE WAVE (U+2800)', 'BAYER 4X4 ORDERED DITHER', 'KINETIC ASCII MATRIX'];
+let modeIdx = 0;
+let t = 0;
+
+document.getElementById('modeBtn')?.addEventListener('click', () => {
+  modeIdx = (modeIdx + 1) % modes.length;
+  const lbl = document.getElementById('shaderLabel');
+  if (lbl) lbl.textContent = 'MODE // ' + modes[modeIdx];
+});
+
+document.getElementById('pulseBtn')?.addEventListener('click', () => {
+  t += 2.5;
+});
+
+function render() {
+  t += 0.035;
+  ctx.fillStyle = '#05060A';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = '12px "JetBrains Mono", monospace';
+  const cols = Math.floor(canvas.width / 14);
+  const rows = Math.floor(canvas.height / 16);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const v = Math.sin(c * 0.22 + t) * Math.cos(r * 0.28 - t * 0.8);
+      if (v > -0.2) {
+        ctx.fillStyle = v > 0.45 ? '#D4AF37' : v > 0.1 ? '#38BDF8' : 'rgba(148,163,184,0.35)';
+        const ch = modeIdx === 0 ? String.fromCharCode(0x2800 + ((Math.floor((v + 1) * 127)) & 0xff)) : modeIdx === 1 ? (v > 0.3 ? '▓' : '▒') : (v > 0.3 ? '#' : '+');
+        ctx.fillText(ch, c * 14 + 6, r * 16 + 14);
+      }
+    }
+  }
+  requestAnimationFrame(render);
+}
+render();
+`;
+
+    return ` Synthesizing **${title}** with bespoke SVG artwork, 16-bit Pixel Art badges, and a 60fps Motion Edit Shader stage:
+
+<boltArtifact id="${slug}" title="${title}">
+<boltAction type="file" filePath="package.json">
+${pkgJson}
+</boltAction>
+<boltAction type="file" filePath="index.html">
+${htmlContent}
+</boltAction>
+<boltAction type="file" filePath="src/main.js">
+${mainJs}
+</boltAction>
+<boltAction type="shell">
+npm install
+</boltAction>
+<boltAction type="start">
+npm run dev
+</boltAction>
+</boltArtifact>`;
+  };
+
+  return {
+    specificationVersion: 'v1',
+    provider: 'ZothLocal',
+    modelId: 'zoth-bolt-instant',
+    defaultObjectGenerationMode: 'json',
+    async doGenerate(options: LanguageModelV1CallOptions) {
+      const promptText = formatPromptForCli(options.prompt);
+      const text = buildArtifactText(promptText);
+      return {
+        text,
+        finishReason: 'stop',
+        usage: { promptTokens: 120, completionTokens: 850 },
+        rawCall: { rawPrompt: promptText, rawSettings: {} },
+      };
+    },
+    async doStream(options: LanguageModelV1CallOptions) {
+      const promptText = formatPromptForCli(options.prompt);
+      const text = buildArtifactText(promptText);
+      const stream = new ReadableStream<LanguageModelV1StreamPart>({
+        start(controller) {
+          controller.enqueue({ type: 'text-delta', textDelta: text });
+          controller.enqueue({
+            type: 'finish',
+            finishReason: 'stop',
+            usage: { promptTokens: 120, completionTokens: 850 },
+          });
+          controller.close();
+        },
+      });
+      return {
+        stream,
+        rawCall: { rawPrompt: promptText, rawSettings: {} },
+      };
+    },
+  };
+}
+
 export default class ZothLocalProvider extends BaseProvider {
+
   name = 'ZothLocal';
   getApiKeyLink = 'https://nullai.tech';
   labelForGetApiKey = 'ZothOS Local Engines (No API Key Required)';
@@ -413,6 +622,13 @@ export default class ZothLocalProvider extends BaseProvider {
   };
 
   staticModels: ModelInfo[] = [
+    {
+      name: 'zoth-bolt-instant',
+      label: '⚡ Zoth Bolt Instant Architect (Deterministic High-Craft + Motion Edit)',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 256000,
+      maxCompletionTokens: 32768,
+    },
     {
       name: 'agy-engine',
       label: '⚡ Google Antigravity (AGY Local CLI - Coding Agent)',
@@ -505,6 +721,20 @@ export default class ZothLocalProvider extends BaseProvider {
       maxCompletionTokens: 16384,
     },
     {
+      name: 'codex-cli',
+      label: '🤖 OpenAI Codex Local CLI Agent',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 200000,
+      maxCompletionTokens: 32768,
+    },
+    {
+      name: 'gemini-cli',
+      label: '♊ Google Gemini Local CLI Agent',
+      provider: 'ZothLocal',
+      maxTokenAllowed: 1000000,
+      maxCompletionTokens: 32768,
+    },
+    {
       name: 'qwen2.5-coder:1.5b',
       label: '🛠️ Qwen 2.5 Coder (Ollama Local)',
       provider: 'ZothLocal',
@@ -553,8 +783,20 @@ export default class ZothLocalProvider extends BaseProvider {
   }): LanguageModelV1 {
     const { model } = options;
 
+    if (model === 'zoth-bolt-instant') {
+      return createInstantBoltArchitectModel();
+    }
+
     if (model === 'agy-engine') {
       return createCliLanguageModel('agy-engine', 'agy', (promptText) => ['-p', promptText]);
+    }
+
+    if (model === 'codex-cli') {
+      return createCliLanguageModel('codex-cli', 'codex', (promptText) => ['--quiet', promptText]);
+    }
+
+    if (model === 'gemini-cli') {
+      return createCliLanguageModel('gemini-cli', 'gemini', (promptText) => ['-p', promptText]);
     }
 
     if (model === 'agy-architect') {

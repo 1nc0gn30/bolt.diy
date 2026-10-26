@@ -66,13 +66,19 @@ export function useMessageParser() {
     }
 
     for (const [index, message] of messages.entries()) {
-      if (message.role === 'assistant' || message.role === 'user') {
-        const newParsedContent = messageParser.parse(message.id, extractTextContent(message));
-        setParsedMessages((prevParsed) => ({
-          ...prevParsed,
-          [index]: !reset ? (prevParsed[index] || '') + newParsedContent : newParsedContent,
-        }));
+      /*
+       * Only assistant artifacts drive the workbench. Parsing user messages
+       * re-ran file writes when a follow-up included a workspace snapshot.
+       */
+      if (message.role !== 'assistant') {
+        continue;
       }
+
+      const newParsedContent = messageParser.parse(message.id, extractTextContent(message));
+      setParsedMessages((prevParsed) => ({
+        ...prevParsed,
+        [index]: !reset ? (prevParsed[index] || '') + newParsedContent : newParsedContent,
+      }));
     }
   }, []);
 

@@ -7,6 +7,10 @@ const EXAMPLE_PROMPTS = [
   { text: 'Build a modern markdown blog with Astro' },
   { text: 'Make an interactive retro arcade game in Canvas' },
   { text: 'Create a luxury automotive concierge web app' },
+  { text: 'Build a Zoth Studio companion page with gold foundry tokens' },
+  { text: 'Build an operator control deck for a local AI host' },
+  { text: 'Build a local-business site using only facts I supply' },
+  { text: 'Build a docs site with AEO FAQ and honest copy' },
 ];
 
 export function ExamplePrompts(sendMessage?: { (event: React.UIEvent, messageInput?: string): void | undefined }) {

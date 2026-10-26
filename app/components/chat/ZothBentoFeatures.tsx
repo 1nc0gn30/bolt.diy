@@ -13,7 +13,7 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
   const mcpConfigSnippet = JSON.stringify(
     {
       mcpServers: {
-        'zoth-webgen': {
+        'zoth-bolt': {
           command: 'node',
           args: ['/home/zoth/NullAITech/bolt.diy/packages/mcp-server/index.mjs'],
           env: {
@@ -93,17 +93,15 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
               <div className="i-ph:plug-charging-fill text-base" />
             </div>
             <span className="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-              Stdio & SSE Live
+              Host CLIs
             </span>
           </div>
           <h3 className="text-sm font-bold text-white group-hover:text-purple-300 transition-colors flex items-center gap-1.5">
-            MCP Autonomous API
+            Grok · Hermes · AGY
             <span className="i-ph:arrow-right text-xs opacity-0 group-hover:opacity-100 transition-opacity text-purple-400" />
           </h3>
           <p className="text-xs text-bolt-elements-textSecondary mt-1 leading-relaxed">
-            Grok CLI, Hermes, OpenCode, Cline, and Aider sit next to the cloud models. MCP still lets an outside agent
-            drive a build.
+            Local harness chips sit next to the cloud models. The 152 MCP catalog stays off until you enable a server.
           </p>
         </div>
       </div>
@@ -118,8 +116,8 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
                   <div className="i-ph:plug-charging-fill text-lg" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white">Model Context Protocol (MCP) Bridge</h2>
-                  <p className="text-xs text-[#D4AF37] font-mono">Autonomous AI Agent Control System</p>
+                  <h2 className="text-base font-bold text-white">Zoth Bolt MCP &amp; Media Asset Bridge</h2>
+                  <p className="text-xs text-[#D4AF37] font-mono">Universal AI Agent &amp; Free Media Asset MCP Server</p>
                 </div>
               </div>
               <button
@@ -133,8 +131,8 @@ export const ZothBentoFeatures: React.FC<ZothBentoFeaturesProps> = ({ onSelectCl
 
             <div className="space-y-4 text-xs text-bolt-elements-textSecondary">
               <p>
-                Connect Grok CLI, Hermes, OpenCode, Cline, Aider, Antigravity, or Claude Code to this Zoth WebGen
-                instance. External agents can prompt builds, run commands, and read generated source code.
+                Connects Grok, Hermes, AGY, Cline, Aider, Cursor, or Claude Code to Zoth Bolt — including free SVG,
+                16-bit Pixel Art, Iconify (200k+ icons), Unsplash HD photo, and Motion Edit template tools.
               </p>
 
               <div>

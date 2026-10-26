@@ -219,6 +219,43 @@ const TOOLS = [
       properties: {},
     },
   },
+  {
+    name: 'zoth_bolt_search_free_icons',
+    description:
+      'Searches 200,000+ free vector and 8-bit pixel-art SVG icons from Iconify (pixelarticons, lucide, ph, game-icons, simple-icons) plus DiceBear pixel-art sprites.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Search keyword (e.g. "bolt", "sword", "shield", "terminal", "robot", "coin").',
+        },
+        collection: {
+          type: 'string',
+          description: 'Collection filter: "pixelarticons", "lucide", "ph", "game-icons", "simple-icons", or "all".',
+        },
+      },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'zoth_bolt_get_svg_pixel_library',
+    description:
+      'Retrieves the built-in Zoth Bolt library of 16x16 inline Pixel Art SVGs, multi-layered Vector SVG Crests, WebAudio SFX synthesizers, and free external media asset endpoints.',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
+  {
+    name: 'zoth_bolt_list_motion_templates',
+    description:
+      'Lists all 6 production Motion Edit & Uncommon Web Shader templates (15s Claude Motion Showreel, @teknium Braille/Dither/ASCII Shader, 16-bit Pixel Art CRT Arcade, Isometric Scroll Choreography, Hermes Commerce Drop, Sovereign SaaS Funnel).',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
 ];
 
 async function callWebGen(action, payload = {}) {
@@ -342,6 +379,24 @@ async function handleToolCall(name, args) {
         previewUrl: null,
         message: 'No active preview server is running yet. Prompt the app to generate and start dev server.',
       });
+    }
+
+    case 'zoth_bolt_search_free_icons': {
+      const result = await callWebGen('search_free_icons', {
+        query: args.query,
+        collection: args.collection || 'pixelarticons',
+      });
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'zoth_bolt_get_svg_pixel_library': {
+      const result = await callWebGen('get_svg_pixel_library');
+      return JSON.stringify(result, null, 2);
+    }
+
+    case 'zoth_bolt_list_motion_templates': {
+      const result = await callWebGen('list_motion_templates');
+      return JSON.stringify(result, null, 2);
     }
 
     default:

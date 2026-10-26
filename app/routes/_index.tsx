@@ -7,11 +7,11 @@ import BackgroundRays from '~/components/ui/BackgroundRays';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: 'Zoth WebGen — Autonomous App Foundry' },
+    { title: 'Zoth Bolt — Full-Stack AI & Motion Architect' },
     {
       name: 'description',
       content:
-        'Zoth WebGen: Autonomous full-stack application architect and in-browser runtime engine by Neal Frazier Tech / NullAI Platform.',
+        'Zoth Bolt: Universal AI full-stack application & motion edit architect supporting 23+ LLM providers, local CLI agents, 200k+ SVG/pixel-art assets, and in-browser WebContainers.',
     },
   ];
 };

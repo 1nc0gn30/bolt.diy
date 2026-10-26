@@ -8,6 +8,7 @@ export interface StudioTelemetry {
 }
 
 export const isAIStudioOpenAtom = atom<boolean>(false);
+export const pendingPromptAppendAtom = atom<string | null>(null);
 export const studioTelemetryAtom = atom<StudioTelemetry>({
   tokensPerSec: 0,
   totalTokens: 0,

@@ -2,6 +2,8 @@ import { convertToCoreMessages, streamText as _streamText, type Message } from '
 import { MAX_TOKENS, PROVIDER_COMPLETION_LIMITS, isReasoningModel, type FileMap } from './constants';
 import { createFilesContext, extractPropertiesFromMessage } from './utils';
 import { PromptLibrary } from '~/lib/common/prompt-library';
+import { PROMPT_PRESETS } from '~/lib/prompt-presets';
+import { STUDIO_SYSTEM_PRESETS } from '~/lib/studio-system-presets';
 import { discussPrompt } from '~/lib/common/prompts/discuss-prompt';
 import { getSystemPrompt } from '~/lib/common/prompts/prompts';
 import { LLMManager } from '~/lib/modules/llm/manager';
@@ -94,6 +96,10 @@ export async function streamText(props: {
     temperature?: number;
     customInstructions?: string;
     systemPreset?: string;
+    soul?: string;
+    memory?: string;
+    stackedPresets?: string[];
+    siteAlreadyLive?: boolean;
   };
 }) {
   const {
@@ -206,8 +212,35 @@ export async function streamText(props: {
       },
     }) ?? getSystemPrompt();
 
+  if (studioSettings?.systemPreset?.trim()) {
+    const preset = STUDIO_SYSTEM_PRESETS.find((item) => item.id === studioSettings.systemPreset);
+    systemPrompt = `${systemPrompt}\n\nZOTH STUDIO SYSTEM PRESET: ${preset?.name || studioSettings.systemPreset}${
+      preset?.systemDirective ? `\n${preset.systemDirective}` : ''
+    }`;
+  }
+
   if (studioSettings?.customInstructions?.trim()) {
     systemPrompt = `${systemPrompt}\n\nDEVELOPER SYSTEM INSTRUCTIONS (AI STUDIO):\n${studioSettings.customInstructions.trim()}`;
+  }
+
+  if (studioSettings?.soul?.trim()) {
+    systemPrompt = `${systemPrompt}\n\n<zoth_webgen_soul>\n${studioSettings.soul.trim().slice(0, 6000)}\n</zoth_webgen_soul>`;
+  }
+
+  if (studioSettings?.memory?.trim()) {
+    systemPrompt = `${systemPrompt}\n\n<zoth_webgen_memory>\n${studioSettings.memory.trim().slice(0, 8000)}\n</zoth_webgen_memory>`;
+  }
+
+  if (studioSettings?.stackedPresets?.length) {
+    const stackedLines = studioSettings.stackedPresets.slice(0, 24).map((item) => {
+      const preset = PROMPT_PRESETS.find((entry) => entry.id === item);
+      return `- ${preset?.prompt || item}`;
+    });
+    systemPrompt = `${systemPrompt}\n\nSTACKED PROMPT PRESETS (honor every item, they add onto the user brief):\n${stackedLines.join('\n')}`;
+  }
+
+  if (studioSettings?.siteAlreadyLive) {
+    systemPrompt = `${systemPrompt}\n\n<followup_contract>\nThe WebContainer preview is already running. This is an edit pass. Change only what the user asked. Do not rewrite the whole tree. Do not add a second start action.\n</followup_contract>`;
   }
 
   if (chatMode === 'build' && contextFiles && contextOptimization) {

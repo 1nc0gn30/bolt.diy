@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Template } from '~/types/template';
 import { STARTER_TEMPLATES } from '~/utils/constants';
+import { MOTION_EDIT_TEMPLATES } from '~/lib/modules/design-libraries/media-packs';
 
 interface FrameworkLinkProps {
   template: Template;
@@ -100,6 +101,33 @@ const DESIGN_2026_STACKS = [
     prompt:
       'Build an autonomous AI agent control hub featuring Model Context Protocol (MCP) tool integration, live Server-Sent Events (SSE) streaming, telemetry gauges, and interactive terminal logs.',
   },
+  {
+    id: 'zoth-foundry-deck',
+    name: 'Zoth Foundry Control Deck',
+    icon: 'i-ph:cpu-fill',
+    badge: 'OS · Studio · Gold',
+    accent: '#D4AF37',
+    prompt:
+      'Build a Zoth foundry control deck: gold #D4AF37 on obsidian, Space Grotesk + Inter, live status for Studio :3000, civilization :9393, and a soul/memory pane. Honest labels only.',
+  },
+  {
+    id: 'editorial-atelier',
+    name: 'Editorial Atelier',
+    icon: 'i-ph:book-open-fill',
+    badge: 'Print • Measure',
+    accent: '#F5E6AB',
+    prompt:
+      'Build an editorial atelier site: oversized headlines, 60ch measure, cream or ink, one photograph band, no card grid.',
+  },
+  {
+    id: 'local-desk',
+    name: 'Local City Desk',
+    icon: 'i-ph:map-pin-fill',
+    badge: 'Facts only',
+    accent: '#38BDF8',
+    prompt:
+      'Build a finished local city-desk site using only facts supplied in the prompt. One contact form is the contact line. 390px first.',
+  },
 ];
 
 const StarterTemplates: React.FC<StarterTemplatesProps> = ({ onSelectPrompt }) => {
@@ -112,7 +140,7 @@ const StarterTemplates: React.FC<StarterTemplatesProps> = ({ onSelectPrompt }) =
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             Framework Architecture Options
           </span>
-          <span className="text-[10px] font-mono text-white/40">1-Click Scaffolding</span>
+          <span className="text-[10px] font-mono text-white/40">Adds onto the prompt</span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
@@ -144,7 +172,7 @@ const StarterTemplates: React.FC<StarterTemplatesProps> = ({ onSelectPrompt }) =
             <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
             2026 Avant-Garde Design Stacks
           </span>
-          <span className="text-[10px] font-mono text-white/40">Zero-Config Architectures</span>
+          <span className="text-[10px] font-mono text-white/40">Adds onto the prompt</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -166,6 +194,41 @@ const StarterTemplates: React.FC<StarterTemplatesProps> = ({ onSelectPrompt }) =
               <h4 className="text-xs font-bold text-white group-hover:text-[#F5E6AB] transition-colors flex items-center justify-between">
                 <span>{stack.name}</span>
                 <span className="i-ph:arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-[#D4AF37]" />
+              </h4>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 2.5. Motion Edit & Cinema Showreel Templates */}
+      <div className="w-full">
+        <div className="flex items-center justify-between mb-2 px-1">
+          <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Motion Edit &amp; Uncommon Shader Templates
+          </span>
+          <span className="text-[10px] font-mono text-white/40">15s Showreels · @teknium · Pixel Art</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {MOTION_EDIT_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.id}
+              type="button"
+              onClick={() => onSelectPrompt?.(tpl.prompt)}
+              className="group text-left p-3 rounded-xl border border-white/10 bg-gradient-to-b from-[#10181D]/90 to-[#090C10]/90 hover:border-emerald-400/50 hover:bg-[#141F26] transition-all duration-200 cursor-pointer relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="w-6 h-6 rounded-md bg-white/5 border border-white/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                  <div className={`${tpl.icon} text-sm`} />
+                </div>
+                <span className="text-[9px] font-mono font-semibold px-1.5 py-0.2 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+                  {tpl.badge}
+                </span>
+              </div>
+              <h4 className="text-xs font-bold text-white group-hover:text-emerald-200 transition-colors flex items-center justify-between">
+                <span>{tpl.name}</span>
+                <span className="i-ph:arrow-right text-[10px] opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
               </h4>
             </button>
           ))}

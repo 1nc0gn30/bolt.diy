@@ -16,6 +16,7 @@ import type { ActionAlert, DeployAlert, SupabaseAlert } from '~/types/actions';
 import type { ITerminal } from '~/types/terminal';
 import { extractRelativePath } from '~/utils/diff';
 import { path } from '~/utils/path';
+import { pushBuildLog } from '~/lib/stores/buildLog';
 import { createSampler } from '~/utils/sampler';
 import { unreachable } from '~/utils/unreachable';
 
@@ -564,6 +565,10 @@ export class WorkbenchStore {
     }
 
     if (data.action.type === 'file') {
+      if (!isStreaming) {
+        pushBuildLog('file', `Wrote ${data.action.filePath}`, `${(data.action.content || '').length} chars`);
+      }
+
       const wc = await webcontainer;
       const fullPath = path.join(wc.workdir, data.action.filePath);
 
@@ -598,6 +603,14 @@ export class WorkbenchStore {
         this.resetAllFileModifications();
       }
     } else {
+      if (data.action.type === 'shell') {
+        pushBuildLog('shell', `Shell ${(data.action as any).content || data.action.type}`);
+      } else if (data.action.type === 'start') {
+        pushBuildLog('start', `Start ${(data.action as any).content || 'dev server'}`);
+      } else {
+        pushBuildLog('info', `${data.action.type} action`);
+      }
+
       await artifact.runner.runAction(data);
     }
   }

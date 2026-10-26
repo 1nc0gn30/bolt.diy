@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { playTactileClick, playSuccessChime } from '~/lib/modules/design-libraries/media-packs';
+import { STUDIO_SYSTEM_PRESETS } from '~/lib/studio-system-presets';
 import { studioTelemetryAtom } from '~/lib/stores/studioStore';
 
 export interface AIStudioModalProps {
@@ -12,52 +13,8 @@ export interface AIStudioModalProps {
   activeProvider?: string;
 }
 
-export interface StudioSystemPreset {
-  id: string;
-  name: string;
-  badge: string;
-  description: string;
-  systemDirective: string;
-}
-
-export const STUDIO_SYSTEM_PRESETS: StudioSystemPreset[] = [
-  {
-    id: 'avant-garde-2026',
-    name: 'Avant-Garde Motion & UI 2026',
-    badge: 'Awwwards / FWA Grade',
-    description:
-      'Bespoke modern art direction with pure CSS conic border beams, ambient aurora mesh, and kinetic canvas motion.',
-    systemDirective:
-      'You are Zoth Avant-Garde WebGen Studio. You build world-class, bespoke web applications and interactive landing pages that look and feel like they won Site of the Day on Awwwards or FWA. Enforce single-idea clarity, Syne & Space Grotesk typography, and real in-browser React utility.',
-  },
-  {
-    id: 'sovereign-saas',
-    name: 'Sovereign Micro-SaaS Architect',
-    badge: 'Stripe + Solana Rails',
-    description:
-      'High-converting SaaS with obsidian glassmorphic UI, above-the-fold sales banner, frosted-glass paywall blur, and dual checkout rails.',
-    systemDirective:
-      'You are Sovereign SaaS Architect. You build high-converting micro-SaaS applications with dark glassmorphic aesthetics, dual Stripe and Solana DePay checkout buttons, transparent telemetry, and 1-click license activation.',
-  },
-  {
-    id: 'astro-speed',
-    name: 'Astro 5 Islands Ultra-Speed',
-    badge: 'Zero-JS Default • SSG/SSR',
-    description:
-      'Ultra-fast web architecture using component islands, Tailwind CSS, content collections, and 100/100 Lighthouse performance.',
-    systemDirective:
-      'You are Astro Performance Architect. You build ultra-fast, zero-bloat static and SSR websites using Astro 5, component islands, and minimal client-side JavaScript.',
-  },
-  {
-    id: 'minimalist-luxury',
-    name: 'Minimalist Clean Luxury',
-    badge: 'Editorial Typography',
-    description:
-      'High-fashion editorial layout, generous negative space, crisp monochrome contrast, and subtle micro-interactions.',
-    systemDirective:
-      'You are Minimalist Luxury Designer. You focus on exceptional typography hierarchy, generous white space, restrained accent colors, and tactile micro-interactions with zero visual clutter.',
-  },
-];
+export type { StudioSystemPreset } from '~/lib/studio-system-presets';
+export { STUDIO_SYSTEM_PRESETS } from '~/lib/studio-system-presets';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const AIStudioModal: React.FC<AIStudioModalProps> = ({
@@ -66,7 +23,7 @@ export const AIStudioModal: React.FC<AIStudioModalProps> = ({
   activeModel = 'gemini-2.5-flash',
   activeProvider = 'Google',
 }) => {
-  const [selectedPreset, setSelectedPreset] = useState<string>('avant-garde-2026');
+  const [selectedPreset, setSelectedPreset] = useState<string>('zoth-foundry');
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [temperature, setTemperature] = useState<number>(0.7);
   const [topP, setTopP] = useState<number>(0.95);

@@ -4,12 +4,17 @@ import type { FileMap } from '~/lib/.server/llm/constants';
 import { createSummary } from '~/lib/.server/llm/create-summary';
 import { createReasoningRewriteTransform } from '~/lib/.server/llm/data-stream-parts';
 import { classifyLLMError } from '~/lib/.server/llm/errors';
-import { MAX_BUILD_SEGMENTS, MAX_UNSTARTED_PASSES, responseNeedsContinue } from '~/lib/.server/llm/response-continue';
+import {
+  MAX_BUILD_SEGMENTS,
+  MAX_UNSTARTED_PASSES,
+  resolveSiteAlreadyLive,
+  responseNeedsContinue,
+} from '~/lib/.server/llm/response-continue';
 import { getFilePaths, selectContext } from '~/lib/.server/llm/select-context';
 import { StreamRecoveryManager } from '~/lib/.server/llm/stream-recovery';
 import { streamText, type Messages, type StreamingOptions } from '~/lib/.server/llm/stream-text';
 import { extractPropertiesFromMessage } from '~/lib/.server/llm/utils';
-import { CONTINUE_PROMPT } from '~/lib/common/prompts/prompts';
+import { CONTINUE_FOLLOWUP_PROMPT, CONTINUE_PROMPT } from '~/lib/common/prompts/prompts';
 import { MCPService } from '~/lib/services/mcpService';
 import type { ContextAnnotation, ProgressAnnotation } from '~/types/context';
 import type { DesignScheme } from '~/types/design-scheme';
@@ -71,6 +76,10 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
       temperature?: number;
       customInstructions?: string;
       systemPreset?: string;
+      soul?: string;
+      memory?: string;
+      stackedPresets?: string[];
+      siteAlreadyLive?: boolean;
     };
     supabase?: {
       isConnected: boolean;
@@ -114,6 +123,25 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
         let messageSliceId = 0;
 
         const processedMessages = await mcpService.processToolInvocations(messages, dataStream);
+        const siteAlreadyLive = resolveSiteAlreadyLive({
+          previewLive: Boolean(studioSettings?.siteAlreadyLive),
+          workspaceFileCount: filePaths.length,
+          messages: processedMessages as any,
+        });
+        const resolvedStudioSettings = {
+          ...studioSettings,
+          siteAlreadyLive,
+        };
+
+        dataStream.writeData({
+          type: 'progress',
+          label: `intake-${progressCounter}`,
+          status: 'complete',
+          order: progressCounter++,
+          message: siteAlreadyLive
+            ? `Follow-up on a live site · ${filePaths.length} workspace files · ${processedMessages.length} messages`
+            : `New build · ${filePaths.length} workspace files · ${processedMessages.length} messages`,
+        } satisfies ProgressAnnotation);
 
         if (processedMessages.length > 3) {
           messageSliceId = processedMessages.length - 3;
@@ -123,102 +151,123 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           logger.debug('Generating Chat Summary');
           dataStream.writeData({
             type: 'progress',
-            label: 'summary',
+            label: `summary-${progressCounter}`,
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Analysing Request',
+            message: 'Summarising the conversation so the follow-up stays in budget',
           } satisfies ProgressAnnotation);
 
-          // Create a summary of the chat
-          console.log(`Messages count: ${processedMessages.length}`);
+          try {
+            summary = await createSummary({
+              messages: [...processedMessages],
+              env: context.cloudflare?.env,
+              apiKeys,
+              providerSettings,
+              promptId,
+              contextOptimization,
+              onFinish(resp) {
+                if (resp.usage) {
+                  logger.debug('createSummary token usage', JSON.stringify(resp.usage));
+                  cumulativeUsage.completionTokens += resp.usage.completionTokens || 0;
+                  cumulativeUsage.promptTokens += resp.usage.promptTokens || 0;
+                  cumulativeUsage.totalTokens += resp.usage.totalTokens || 0;
+                }
+              },
+            });
+            dataStream.writeData({
+              type: 'progress',
+              label: `summary-${progressCounter}`,
+              status: 'complete',
+              order: progressCounter++,
+              message: 'Conversation summary ready',
+            } satisfies ProgressAnnotation);
 
-          summary = await createSummary({
-            messages: [...processedMessages],
-            env: context.cloudflare?.env,
-            apiKeys,
-            providerSettings,
-            promptId,
-            contextOptimization,
-            onFinish(resp) {
-              if (resp.usage) {
-                logger.debug('createSummary token usage', JSON.stringify(resp.usage));
-                cumulativeUsage.completionTokens += resp.usage.completionTokens || 0;
-                cumulativeUsage.promptTokens += resp.usage.promptTokens || 0;
-                cumulativeUsage.totalTokens += resp.usage.totalTokens || 0;
-              }
-            },
-          });
-          dataStream.writeData({
-            type: 'progress',
-            label: 'summary',
-            status: 'complete',
-            order: progressCounter++,
-            message: 'Analysis Complete',
-          } satisfies ProgressAnnotation);
-
-          dataStream.writeMessageAnnotation({
-            type: 'chatSummary',
-            summary,
-            chatId: processedMessages.slice(-1)?.[0]?.id,
-          } as ContextAnnotation);
+            dataStream.writeMessageAnnotation({
+              type: 'chatSummary',
+              summary,
+              chatId: processedMessages.slice(-1)?.[0]?.id,
+            } as ContextAnnotation);
+          } catch (summaryError: any) {
+            logger.warn(`createSummary failed, continuing without it: ${summaryError?.message || summaryError}`);
+            dataStream.writeData({
+              type: 'progress',
+              label: `summary-${progressCounter}`,
+              status: 'failed',
+              order: progressCounter++,
+              message: 'Summary skipped — using the live workspace files instead',
+            } satisfies ProgressAnnotation);
+            summary = undefined;
+          }
 
           streamRecovery.updateActivity();
 
-          // Update context buffer
           logger.debug('Updating Context Buffer');
           dataStream.writeData({
             type: 'progress',
-            label: 'context',
+            label: `context-${progressCounter}`,
             status: 'in-progress',
             order: progressCounter++,
-            message: 'Determining Files to Read',
+            message: `Selecting files to read from ${filePaths.length} paths`,
           } satisfies ProgressAnnotation);
 
-          // Select context files
-          console.log(`Messages count: ${processedMessages.length}`);
-          filteredFiles = await selectContext({
-            messages: [...processedMessages],
-            env: context.cloudflare?.env,
-            apiKeys,
-            files,
-            providerSettings,
-            promptId,
-            contextOptimization,
-            summary,
-            onFinish(resp) {
-              if (resp.usage) {
-                logger.debug('selectContext token usage', JSON.stringify(resp.usage));
-                cumulativeUsage.completionTokens += resp.usage.completionTokens || 0;
-                cumulativeUsage.promptTokens += resp.usage.promptTokens || 0;
-                cumulativeUsage.totalTokens += resp.usage.totalTokens || 0;
-              }
-            },
-          });
-
-          if (filteredFiles) {
-            logger.debug(`files in context : ${JSON.stringify(Object.keys(filteredFiles))}`);
+          try {
+            filteredFiles = await selectContext({
+              messages: [...processedMessages],
+              env: context.cloudflare?.env,
+              apiKeys,
+              files,
+              providerSettings,
+              promptId,
+              contextOptimization,
+              summary: summary || '',
+              onFinish(resp) {
+                if (resp.usage) {
+                  logger.debug('selectContext token usage', JSON.stringify(resp.usage));
+                  cumulativeUsage.completionTokens += resp.usage.completionTokens || 0;
+                  cumulativeUsage.promptTokens += resp.usage.promptTokens || 0;
+                  cumulativeUsage.totalTokens += resp.usage.totalTokens || 0;
+                }
+              },
+            });
+          } catch (contextError: any) {
+            logger.warn(`selectContext failed, sending path list only: ${contextError?.message || contextError}`);
+            filteredFiles = undefined;
+            dataStream.writeData({
+              type: 'progress',
+              label: `context-${progressCounter}`,
+              status: 'failed',
+              order: progressCounter++,
+              message: 'File picker skipped — the model still has the workspace map',
+            } satisfies ProgressAnnotation);
           }
 
-          dataStream.writeMessageAnnotation({
-            type: 'codeContext',
-            files: Object.keys(filteredFiles).map((key) => {
-              let path = key;
+          if (filteredFiles) {
+            const selected = Object.keys(filteredFiles);
+            logger.debug(`files in context : ${JSON.stringify(selected)}`);
+            dataStream.writeMessageAnnotation({
+              type: 'codeContext',
+              files: selected.map((key) => {
+                let path = key;
 
-              if (path.startsWith(WORK_DIR)) {
-                path = path.replace(WORK_DIR, '');
-              }
+                if (path.startsWith(WORK_DIR)) {
+                  path = path.replace(WORK_DIR, '');
+                }
 
-              return path;
-            }),
-          } as ContextAnnotation);
+                return path;
+              }),
+            } as ContextAnnotation);
 
-          dataStream.writeData({
-            type: 'progress',
-            label: 'context',
-            status: 'complete',
-            order: progressCounter++,
-            message: 'Code Files Selected',
-          } satisfies ProgressAnnotation);
+            dataStream.writeData({
+              type: 'progress',
+              label: `context-${progressCounter}`,
+              status: 'complete',
+              order: progressCounter++,
+              message: `Loaded ${selected.length} files into context: ${selected
+                .slice(0, 8)
+                .map((key) => key.replace(WORK_DIR, ''))
+                .join(', ')}${selected.length > 8 ? '…' : ''}`,
+            } satisfies ProgressAnnotation);
+          }
 
           streamRecovery.updateActivity();
         }
@@ -269,12 +318,20 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
 
             assembled += content || '';
 
-            const gap = responseNeedsContinue(assembled, chatModeForFinish);
+            const gap = responseNeedsContinue(assembled, chatModeForFinish, { siteAlreadyLive });
 
-            const siteDone =
-              gap === null &&
+            const hasCompleteNewSite =
               assembled.includes('<boltArtifact') &&
               /<boltAction\b[^>]*\btype=["']start["']/.test(assembled);
+
+            /*
+             * A live preview is done unless this pass was cut off mid-file
+             * (unclosed) or mid-reply (finishReason length). Do not keep
+             * asking for a second start action.
+             */
+            const siteDone =
+              gap === null &&
+              (hasCompleteNewSite || (siteAlreadyLive && finishReason !== 'length'));
 
             const proseCutOff = finishReason === 'length' && !siteDone && gap === null;
             const shouldContinue = gap !== null || proseCutOff;
@@ -319,17 +376,19 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
 
             dataStream.writeData({
               type: 'progress',
-              label: 'response',
+              label: `continue-${buildSegments}`,
               status: 'in-progress',
               order: progressCounter++,
-              message: `Still building with ${model}`,
+              message: `Pass ${buildSegments}/${MAX_BUILD_SEGMENTS} · ${gap ?? 'length'} · ${model} on ${provider}`,
             } satisfies ProgressAnnotation);
 
             processedMessages.push({ id: generateId(), role: 'assistant', content: content || '' });
             processedMessages.push({
               id: generateId(),
               role: 'user',
-              content: `[Model: ${model}]\n\n[Provider: ${provider}]\n\n${CONTINUE_PROMPT}`,
+              content: `[Model: ${model}]\n\n[Provider: ${provider}]\n\n${
+                siteAlreadyLive ? CONTINUE_FOLLOWUP_PROMPT : CONTINUE_PROMPT
+              }`,
             });
 
             const result = await streamText({
@@ -344,7 +403,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
               contextFiles: filteredFiles,
               chatMode,
               designScheme,
-              studioSettings,
+              studioSettings: resolvedStudioSettings,
               summary,
               messageSliceId,
             });
@@ -370,10 +429,12 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
 
         dataStream.writeData({
           type: 'progress',
-          label: 'response',
+          label: `response-${progressCounter}`,
           status: 'in-progress',
           order: progressCounter++,
-          message: 'Generating Response',
+          message: siteAlreadyLive
+            ? 'Applying the follow-up to the live site'
+            : 'Generating the first site artifact',
         } satisfies ProgressAnnotation);
 
         const result = await streamText({
@@ -388,7 +449,7 @@ async function chatAction({ context, request }: ActionFunctionArgs) {
           contextFiles: filteredFiles,
           chatMode,
           designScheme,
-          studioSettings,
+          studioSettings: resolvedStudioSettings,
           summary,
           messageSliceId,
         });

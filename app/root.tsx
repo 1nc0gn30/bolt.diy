@@ -49,12 +49,12 @@ const schemaJsonLd = {
   '@graph': [
     {
       '@type': 'WebApplication',
-      name: 'Zoth WebGen Foundry',
+      name: 'Zoth Bolt — Full-Stack AI & Motion Architect',
       url: 'https://webgen.nullai.tech/',
       applicationCategory: 'DeveloperApplication',
       operatingSystem: 'All',
       description:
-        'Autonomous in-browser full-stack application architect and WebContainer runtime by Neal Frazier Tech.',
+        'Universal AI in-browser full-stack application & motion edit architect with 200k+ SVG/pixel-art icons and MCP asset bridges by Neal Frazier Tech.',
       creator: {
         '@type': 'Organization',
         name: 'Neal Frazier Tech',
@@ -89,7 +89,7 @@ export const Head = createHead(() => (
   <>
     <meta charSet="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta property="og:title" content="Zoth WebGen — Autonomous App Foundry" />
+    <meta property="og:title" content="Zoth Bolt — Full-Stack AI & Motion Architect" />
     <meta
       property="og:description"
       content="Where Sovereign Software Begins: Autonomous full-stack application architect & WebContainer engine by Neal Frazier Tech."

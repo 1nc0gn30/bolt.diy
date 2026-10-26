@@ -6,7 +6,7 @@ import { useStore } from '@nanostores/react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import type { JSONValue, Message } from 'ai';
 import Cookies from 'js-cookie';
-import React, { type RefCallback, useEffect, useState } from 'react';
+import React, { type RefCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { ClientOnly } from 'remix-utils/client-only';
 import { getApiKeysFromCookies } from './APIKeyManager';
@@ -17,8 +17,12 @@ import GitCloneButton from './GitCloneButton';
 import LlmErrorAlert from './LLMApiAlert';
 import { Messages } from './Messages.client';
 import ProgressCompilation from './ProgressCompilation';
+import { BuildLogStream } from './BuildLogStream';
+import { PromptPresetStack } from './PromptPresetStack';
 import StarterTemplates from './StarterTemplates';
 import { ZothBentoFeatures } from './ZothBentoFeatures';
+import { pendingPromptAppendAtom } from '~/lib/stores/studioStore';
+import { pushBuildLog } from '~/lib/stores/buildLog';
 import { ExamplePrompts } from '~/components/chat/ExamplePrompts';
 import { SupabaseChatAlert } from '~/components/chat/SupabaseAlert';
 import { ImportButtons } from '~/components/chat/chatExportAndImport/ImportButtons';
@@ -149,6 +153,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [transcript, setTranscript] = useState('');
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
+    const lastProgressOrderRef = useRef(-1);
     const expoUrl = useStore(expoUrlAtom);
     const [qrModalOpen, setQrModalOpen] = useState(false);
     const [showreelOpen, setShowreelOpen] = useState(false);
@@ -172,13 +177,50 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     }, [expoUrl]);
 
     useEffect(() => {
-      if (data) {
-        const progressList = data.filter(
-          (x) => typeof x === 'object' && (x as any).type === 'progress',
-        ) as ProgressAnnotation[];
-        setProgressAnnotations(progressList);
+      if (!data || data.length === 0) {
+        lastProgressOrderRef.current = -1;
+        return;
+      }
+
+      const progressList = data.filter(
+        (x) => typeof x === 'object' && (x as any).type === 'progress',
+      ) as ProgressAnnotation[];
+      setProgressAnnotations(progressList);
+
+      for (const item of progressList) {
+        if (item.order <= lastProgressOrderRef.current || !item.message) {
+          continue;
+        }
+
+        lastProgressOrderRef.current = item.order;
+        pushBuildLog(
+          item.status === 'failed' ? 'error' : item.label?.startsWith('continue') ? 'continue' : 'progress',
+          item.message,
+        );
       }
     }, [data]);
+
+    useEffect(() => {
+      const unsub = pendingPromptAppendAtom.subscribe((snippet) => {
+        if (!snippet || !handleInputChange) {
+          return;
+        }
+
+        const current = textareaRef?.current?.value || input || '';
+        const next = current.trim() ? `${current.trim()}\n\n${snippet}` : snippet;
+        handleInputChange({ target: { value: next } } as any);
+
+        if (textareaRef?.current) {
+          textareaRef.current.value = next;
+          textareaRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+          textareaRef.current.focus();
+        }
+
+        pendingPromptAppendAtom.set(null);
+      });
+
+      return () => unsub();
+    }, [handleInputChange, input, textareaRef]);
     useEffect(() => {
       console.log(transcript);
     }, [transcript]);
@@ -370,30 +412,17 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           <div className={classNames(styles.Chat, 'flex flex-col flex-grow lg:min-w-[var(--chat-min-width)] h-full')}>
             {!chatStarted && (
               <>
-                <div className="aurora-bg-container">
-                  <div className="aurora-glow-gold" />
-                  <div className="aurora-glow-cyan" />
-                  <div className="aurora-glow-purple" />
-                </div>
                 <ClientOnly>{() => <KineticHeroCanvas />}</ClientOnly>
                 <div id="intro" className="relative z-10 mt-3 sm:mt-5 max-w-2xl mx-auto text-center px-4 lg:px-0">
-                  <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] text-[11px] font-mono font-medium uppercase tracking-wider mb-2.5 animate-fade-in shadow-[0_0_15px_rgba(212,175,55,0.15)]">
+                  <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/10 text-[#D4AF37] text-[11px] font-mono font-medium uppercase tracking-wider mb-2.5 animate-fade-in">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-                    <span>Zoth WebGen Foundry • Autonomous Architecture</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowreelOpen(true)}
-                      className="inline-flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full border border-purple-500/40 bg-purple-500/20 text-purple-300 hover:text-white hover:bg-purple-500/30 text-[9px] font-bold transition-all cursor-pointer"
-                      title="View 15s Claude Motion Graphics Showreel Prompt & Simulator"
-                    >
-                      <span>▶ 15s Showreel</span>
-                    </button>
+                    <span>Zoth Bolt · Any AI Provider &amp; Agent · Motion &amp; Pixel Vault</span>
                   </div>
-                  <h1 className="font-syne text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-bolt-elements-textPrimary mb-2 animate-fade-in">
-                    Where <span className="shimmer-text-gold">Sovereign Software</span> Begins
+                  <h1 className="font-space-grotesk text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-bolt-elements-textPrimary mb-2 animate-fade-in">
+                    Zoth Bolt Full-Stack Architect
                   </h1>
-                  <p className="text-xs sm:text-sm lg:text-base mb-2 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
-                    Architect, generate, and run production-grade web applications in real-time.
+                  <p className="text-xs sm:text-sm lg:text-base mb-2 text-bolt-elements-textSecondary animate-fade-in animation-delay-200 max-w-[44rem] mx-auto">
+                    Build Awwwards-grade full-stack apps &amp; 15s motion edits with any cloud LLM, Ollama model, or local CLI agent (AGY, Hermes, Grok, Claude, OpenCode, Cline, Aider) plus 200k+ free SVG &amp; pixel-art assets.
                   </p>
                 </div>
                 <ClientOnly>
@@ -482,6 +511,16 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   {llmErrorAlert && <LlmErrorAlert alert={llmErrorAlert} clearAlert={() => clearLlmErrorAlert?.()} />}
                 </div>
                 {progressAnnotations && <ProgressCompilation data={progressAnnotations} />}
+                {(isStreaming || chatStarted) && <BuildLogStream isStreaming={isStreaming} />}
+                {chatStarted && (
+                  <PromptPresetStack
+                    compact
+                    input={input}
+                    onInput={(next) => {
+                      handleInputChange?.({ target: { value: next } } as any);
+                    }}
+                  />
+                )}
                 <ChatBox
                   isModelSettingsCollapsed={isModelSettingsCollapsed}
                   setIsModelSettingsCollapsed={setIsModelSettingsCollapsed}
@@ -536,23 +575,27 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               )}
               <div className="flex flex-col gap-5">
                 {!chatStarted &&
-                  ExamplePrompts((event, messageInput) => {
-                    if (isStreaming) {
-                      handleStop?.();
-                      return;
-                    }
-
-                    handleSendMessage?.(event, messageInput);
+                  ExamplePrompts((_event, messageInput) => {
+                    const next = input?.trim()
+                      ? `${input.trim()}\n\n${messageInput}`
+                      : messageInput || '';
+                    handleInputChange?.({ target: { value: next } } as any);
                   })}
+                {!chatStarted && (
+                  <PromptPresetStack
+                    input={input}
+                    onInput={(next) => {
+                      handleInputChange?.({ target: { value: next } } as any);
+                    }}
+                  />
+                )}
                 {!chatStarted && (
                   <StarterTemplates
                     onSelectPrompt={(selectedPrompt) => {
-                      if (isStreaming) {
-                        handleStop?.();
-                        return;
-                      }
-
-                      handleSendMessage?.({} as any, selectedPrompt);
+                      const next = input?.trim()
+                        ? `${input.trim()}\n\n${selectedPrompt}`
+                        : selectedPrompt;
+                      handleInputChange?.({ target: { value: next } } as any);
                     }}
                   />
                 )}
@@ -571,15 +614,22 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     </a>
                     <span>•</span>
                     <a
-                      href="https://nullai.tech"
+                      href="https://zothos.nullai.tech"
                       target="_blank"
                       rel="noreferrer"
                       className="hover:text-bolt-elements-textSecondary transition-colors"
                     >
-                      NullAI Platform
+                      zothos.nullai.tech
                     </a>
                     <span>•</span>
-                    <span className="opacity-75">Inspired by Bolt</span>
+                    <a
+                      href="https://zoth.nullai.tech"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-bolt-elements-textSecondary transition-colors"
+                    >
+                      Studio
+                    </a>
                   </div>
                   <div className="flex items-center justify-center gap-3 text-[11px] text-bolt-elements-textTertiary/80">
                     <a href="/terms" className="hover:text-white transition-colors">
@@ -593,6 +643,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     <a href="/support" className="hover:text-white transition-colors">
                       Support & FAQs
                     </a>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowreelOpen(true)}
+                      className="hover:text-white transition-colors bg-transparent border-0 p-0 text-[11px] text-bolt-elements-textTertiary/80 cursor-pointer"
+                    >
+                      15s showreel
+                    </button>
                   </div>
                 </footer>
               )}

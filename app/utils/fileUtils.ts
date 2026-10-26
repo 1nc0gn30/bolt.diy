@@ -104,18 +104,99 @@ export const detectProjectType = async (
   return { type: '', setupCommand: '', followupMessage: '' };
 };
 
+const SKIP_PATH = /(?:^|\/)(node_modules|\.git|dist|build|\.cache|coverage)(?:\/|$)/;
+const SKIP_EXT = /\.(png|jpe?g|gif|webp|ico|bmp|pdf|zip|woff2?|ttf|eot|mp4|webm|mp3|wasm)$/i;
+const MAX_FOLLOWUP_FILE_CHARS = 8000;
+const MAX_FOLLOWUP_TOTAL_CHARS = 24000;
+
+function isSkippablePath(filePath: string): boolean {
+  return SKIP_PATH.test(filePath) || SKIP_EXT.test(filePath);
+}
+
+/**
+ * Compact workspace note for a follow-up. Full file bodies already travel in
+ * the request `files` map. A second boltArtifact here used to re-trigger the
+ * parser and blow the token budget after a site was already built.
+ */
 export const filesToArtifacts = (files: { [path: string]: { content: string } }, id: string): string => {
+  const paths = Object.keys(files).filter((filePath) => !isSkippablePath(filePath));
+
+  if (paths.length === 0) {
+    return '';
+  }
+
+  let used = 0;
+  const excerpts: string[] = [];
+
+  for (const filePath of paths) {
+    const raw = files[filePath]?.content || '';
+
+    if (typeof raw !== 'string' || raw.length === 0) {
+      excerpts.push(`- ${filePath}`);
+      continue;
+    }
+
+    const budget = Math.min(MAX_FOLLOWUP_FILE_CHARS, MAX_FOLLOWUP_TOTAL_CHARS - used);
+
+    if (budget < 80) {
+      excerpts.push(`- ${filePath} (${raw.length} chars, omitted)`);
+      continue;
+    }
+
+    const sanitized = raw.replace(/<\/?bolt(?:Artifact|Action)\b[^>]*>/gi, '');
+    const slice =
+      sanitized.length > budget
+        ? `${sanitized.slice(0, budget)}\n/* truncated ${sanitized.length - budget} chars */`
+        : sanitized;
+    used += slice.length;
+    excerpts.push(`<file path="${filePath}">\n${slice}\n</file>`);
+  }
+
   return `
-<boltArtifact id="${id}" title="User Updated Files">
-${Object.keys(files)
-  .map(
-    (filePath) => `
-<boltAction type="file" filePath="${filePath}">
-${files[filePath].content}
-</boltAction>
-`,
-  )
-  .join('\n')}
-</boltArtifact>
-  `;
+<workspace_status id="${id}">
+The project is already in the WebContainer. Edit only the files this follow-up asks for.
+Do not scaffold from scratch. Do not open a second boltArtifact unless you need to write files.
+Do not add a second start action if the preview is already live.
+Changed files:
+${excerpts.join('\n')}
+</workspace_status>
+`;
+};
+
+export function compactFileMap(
+  files: Record<string, { type?: string; content?: string; isBinary?: boolean; isLocked?: boolean } | undefined>,
+  options?: { maxFiles?: number; maxChars?: number },
+): Record<string, { type: 'file'; content: string; isBinary: boolean; isLocked?: boolean }> {
+  const maxFiles = options?.maxFiles ?? 80;
+  const maxChars = options?.maxChars ?? 180000;
+  const compact: Record<string, { type: 'file'; content: string; isBinary: boolean; isLocked?: boolean }> = {};
+  let used = 0;
+  let count = 0;
+
+  for (const [filePath, fileObj] of Object.entries(files || {})) {
+    if (!fileObj || fileObj.type !== 'file' || fileObj.isBinary || typeof fileObj.content !== 'string') {
+      continue;
+    }
+
+    if (isSkippablePath(filePath)) {
+      continue;
+    }
+
+    if (count >= maxFiles || used >= maxChars) {
+      break;
+    }
+
+    const remaining = maxChars - used;
+    const content = fileObj.content.length > remaining ? fileObj.content.slice(0, remaining) : fileObj.content;
+    compact[filePath] = {
+      type: 'file',
+      content,
+      isBinary: false,
+      isLocked: fileObj.isLocked,
+    };
+    used += content.length;
+    count += 1;
+  }
+
+  return compact;
 };

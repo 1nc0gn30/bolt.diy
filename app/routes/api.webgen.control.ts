@@ -10,7 +10,14 @@ import {
   TYPOGRAPHY_PAIRINGS,
   COLOR_PALETTES,
 } from '~/lib/modules/design-libraries/catalog';
-import { CURATED_PHOTOGRAPHY_PACKS } from '~/lib/modules/design-libraries/media-packs';
+import {
+  CURATED_PHOTOGRAPHY_PACKS,
+  PIXEL_ART_ICONS,
+  BESPOKE_SVG_CRESTS,
+  MOTION_EDIT_TEMPLATES,
+  FREE_MEDIA_ASSET_SOURCES,
+  SYNTHETIC_SFX_COLLECTION,
+} from '~/lib/modules/design-libraries/media-packs';
 
 export async function loader({ request: _request }: LoaderFunctionArgs) {
   const state = webGenBridge.getState();
@@ -32,6 +39,11 @@ export async function loader({ request: _request }: LoaderFunctionArgs) {
       commodities: COMMODITIES_AND_EFFECTS.length,
       typographyPairings: TYPOGRAPHY_PAIRINGS.length,
       palettes: COLOR_PALETTES.length,
+      polyglot: true,
+      pixelArtIcons: PIXEL_ART_ICONS.length,
+      bespokeSvgCrests: BESPOKE_SVG_CRESTS.length,
+      motionEditTemplates: MOTION_EDIT_TEMPLATES.length,
+      freeAssetSources: FREE_MEDIA_ASSET_SOURCES.length,
       mediaPacks: CURATED_PHOTOGRAPHY_PACKS.length,
     },
   });
@@ -352,6 +364,55 @@ export async function action({ request }: ActionFunctionArgs) {
           success: true,
           path: filePath,
           content: file.content,
+        });
+      }
+
+      case 'get_svg_pixel_library': {
+        return json({
+          success: true,
+          pixelArtIcons: PIXEL_ART_ICONS,
+          bespokeSvgCrests: BESPOKE_SVG_CRESTS,
+          webaudioSfx: SYNTHETIC_SFX_COLLECTION,
+          freeSources: FREE_MEDIA_ASSET_SOURCES,
+        });
+      }
+
+      case 'list_motion_templates': {
+        return json({
+          success: true,
+          motionTemplates: MOTION_EDIT_TEMPLATES,
+        });
+      }
+
+      case 'search_free_icons': {
+        const query = String(body.query || 'bolt').trim();
+        const collection = String(body.collection || 'pixelarticons').trim();
+        let icons: string[] = [];
+
+        try {
+          const prefixParam = collection === 'all' ? '' : `&prefix=${encodeURIComponent(collection)}`;
+          const res = await fetch(
+            `https://api.iconify.design/search?query=${encodeURIComponent(query)}&limit=20${prefixParam}`,
+          );
+          const data = (await res.json()) as { icons?: string[] };
+          icons = data?.icons || [];
+        } catch {
+          icons = ['pixelarticons:zap', 'pixelarticons:shield', 'pixelarticons:trophy', 'lucide:sparkles'];
+        }
+
+        return json({
+          success: true,
+          query,
+          collection,
+          icons: icons.map((id) => {
+            const [prefix, name] = id.split(':');
+            return {
+              id,
+              svgUrl: `https://api.iconify.design/${prefix}/${name}.svg?color=%23D4AF37`,
+              imgTag: `<img src="https://api.iconify.design/${prefix}/${name}.svg?color=%23D4AF37" alt="${name} icon" width="24" height="24" />`,
+            };
+          }),
+          dicebearPixelSpriteUrl: `https://api.dicebear.com/9.x/pixel-art/svg?seed=${encodeURIComponent(query)}`,
         });
       }
 

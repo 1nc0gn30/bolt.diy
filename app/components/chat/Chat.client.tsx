@@ -25,7 +25,9 @@ import type { ProviderInfo } from '~/types/model';
 import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROMPT_COOKIE_KEY, PROVIDER_LIST } from '~/utils/constants';
 import { debounce } from '~/utils/debounce';
 import { cubicEasingFn } from '~/utils/easings';
-import { filesToArtifacts } from '~/utils/fileUtils';
+import { compactFileMap, filesToArtifacts } from '~/utils/fileUtils';
+import { pushBuildLog } from '~/lib/stores/buildLog';
+import { soulAtom, memoryAtom, rememberBuild } from '~/lib/stores/soul';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
 import { createSampler } from '~/utils/sampler';
 import { getTemplates, selectStarterTemplate } from '~/utils/selectStarterTemplate';
@@ -68,7 +70,17 @@ const processSampledMessages = createSampler(
     parseMessages(messages, isLoading);
 
     if (messages.length > initialMessages.length) {
-      storeMessageHistory(messages).catch((error) => toast.error(error.message));
+      storeMessageHistory(messages).catch((error) => {
+        const text = error instanceof Error ? error.message : String(error);
+        pushBuildLog('error', 'Chat history save failed', text);
+
+        if (/quota|indexeddb|idb/i.test(text)) {
+          toast.warning('Chat is live, but the browser could not persist this large site. Export if you need a copy.');
+          return;
+        }
+
+        toast.error(text);
+      });
     }
   },
   50,
@@ -157,7 +169,7 @@ export const ChatImpl = memo(
       api: '/api/chat',
       body: {
         apiKeys,
-        files,
+        files: compactFileMap(files as any),
         promptId,
         contextOptimization: contextOptimizationEnabled,
         chatMode,
@@ -167,7 +179,18 @@ export const ChatImpl = memo(
             ? {
                 temperature: parseFloat(localStorage.getItem('zoth_studio_temperature') || '0.7'),
                 customInstructions: localStorage.getItem('zoth_studio_custom_instructions') || undefined,
-                systemPreset: localStorage.getItem('zoth_studio_system_preset') || 'avant-garde-2026',
+                systemPreset: localStorage.getItem('zoth_studio_system_preset') || 'zoth-foundry',
+                soul: soulAtom.get(),
+                memory: memoryAtom.get(),
+                stackedPresets: (() => {
+                  try {
+                    const raw = localStorage.getItem('zoth_webgen_preset_stack');
+                    return raw ? (JSON.parse(raw) as string[]) : [];
+                  } catch {
+                    return [];
+                  }
+                })(),
+                siteAlreadyLive: (workbenchStore.previews.get() || []).length > 0,
               }
             : undefined,
         supabase: {
@@ -189,6 +212,7 @@ export const ChatImpl = memo(
           tokensPerSec: 0,
           latencyMs: 0,
         });
+        pushBuildLog('error', e?.message || 'Chat request failed');
         handleError(e, 'chat');
       },
       onFinish: (message, response) => {
@@ -204,6 +228,26 @@ export const ChatImpl = memo(
           tokensPerSec: tps,
           latencyMs: Math.round(durationSec * 1000),
         });
+
+        pushBuildLog(
+          'tokens',
+          `Done · ${total} tokens · ${tps} tok/s · ${Math.round(durationSec)}s`,
+          message.content.includes('<boltArtifact') ? 'artifact closed' : 'follow-up',
+        );
+
+        try {
+          rememberBuild({
+            prompt: (() => {
+              const lastUser = messages.filter((item) => item.role === 'user').slice(-1)[0];
+              return typeof lastUser?.content === 'string' ? lastUser.content.slice(0, 240) : '';
+            })(),
+            model,
+            provider: provider.name,
+            files: Object.keys(workbenchStore.files.get() || {}).length,
+          });
+        } catch {
+          // Memory is optional; a quota error must not fail the chat finish path.
+        }
 
         if (usage) {
           console.log('Token usage:', usage);
@@ -526,6 +570,7 @@ export const ChatImpl = memo(
         }
 
         // If autoSelectTemplate is disabled or template selection failed, proceed with normal message
+        pushBuildLog('info', 'Starting a new site', `${model} · ${provider.name}`);
         const userMessageText = `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${finalMessageContent}`;
         const attachments = uploadedFiles.length > 0 ? await filesToAttachments(uploadedFiles) : undefined;
 
@@ -554,45 +599,48 @@ export const ChatImpl = memo(
       }
 
       if (error != null) {
-        setMessages(messages.slice(0, -1));
+        const last = messages[messages.length - 1];
+        const lastText = typeof last?.content === 'string' ? last.content : '';
+        const keepCompletedSite =
+          last?.role === 'assistant' &&
+          (lastText.includes('</boltArtifact>') || lastText.includes('<boltAction') || lastText.length > 80);
+
+        if (last?.role === 'assistant' && !keepCompletedSite) {
+          setMessages(messages.slice(0, -1));
+        }
       }
 
       const modifiedFiles = workbenchStore.getModifiedFiles();
+      const previewLive = (workbenchStore.previews.get() || []).length > 0;
 
       chatStore.setKey('aborted', false);
+      pushBuildLog(
+        'info',
+        previewLive ? 'Follow-up on the live site' : 'Sending build prompt',
+        `${model} · ${provider.name}`,
+      );
 
-      if (modifiedFiles !== undefined) {
-        const userUpdateArtifact = filesToArtifacts(modifiedFiles, `${Date.now()}`);
-        const messageText = `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${userUpdateArtifact}${finalMessageContent}`;
+      const workspaceNote =
+        modifiedFiles !== undefined
+          ? filesToArtifacts(modifiedFiles, `${Date.now()}`)
+          : previewLive
+            ? `\n<workspace_status>The preview is already live. Apply this change to the existing project. Do not scaffold from scratch. Do not add a second start action.</workspace_status>\n`
+            : '';
+      const messageText = `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${workspaceNote}${finalMessageContent}`;
 
-        const attachmentOptions =
-          uploadedFiles.length > 0 ? { experimental_attachments: await filesToAttachments(uploadedFiles) } : undefined;
+      const attachmentOptions =
+        uploadedFiles.length > 0 ? { experimental_attachments: await filesToAttachments(uploadedFiles) } : undefined;
 
-        append(
-          {
-            role: 'user',
-            content: messageText,
-            parts: createMessageParts(messageText, imageDataList),
-          },
-          attachmentOptions,
-        );
+      append(
+        {
+          role: 'user',
+          content: messageText,
+          parts: createMessageParts(messageText, imageDataList),
+        },
+        attachmentOptions,
+      );
 
-        workbenchStore.resetAllFileModifications();
-      } else {
-        const messageText = `[Model: ${model}]\n\n[Provider: ${provider.name}]\n\n${finalMessageContent}`;
-
-        const attachmentOptions =
-          uploadedFiles.length > 0 ? { experimental_attachments: await filesToAttachments(uploadedFiles) } : undefined;
-
-        append(
-          {
-            role: 'user',
-            content: messageText,
-            parts: createMessageParts(messageText, imageDataList),
-          },
-          attachmentOptions,
-        );
-      }
+      workbenchStore.resetAllFileModifications();
 
       setInput('');
       Cookies.remove(PROMPT_COOKIE_KEY);

@@ -13,19 +13,7 @@ export default function ProgressCompilation({ data }: { data?: ProgressAnnotatio
       return;
     }
 
-    const progressMap = new Map<string, ProgressAnnotation>();
-    data.forEach((x) => {
-      const existingProgress = progressMap.get(x.label);
-
-      if (existingProgress && existingProgress.status === 'complete') {
-        return;
-      }
-
-      progressMap.set(x.label, x);
-    });
-
-    const newData = Array.from(progressMap.values());
-    newData.sort((a, b) => a.order - b.order);
+    const newData = [...data].sort((a, b) => a.order - b.order);
     setProgressList(newData);
   }, [data]);
 
