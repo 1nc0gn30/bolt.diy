@@ -7,8 +7,8 @@
 <div align="center">
   <a href="https://zoth.nullai.tech/webgen"><img src="https://img.shields.io/badge/Zoth_Bolt-v3.5_Architect-D4AF37?style=for-the-badge&logo=lightning&logoColor=black" alt="Zoth Bolt v3.5" /></a>
   <a href="https://github.com/stackblitz-labs/bolt.diy"><img src="https://img.shields.io/badge/Lineage-Open--Source_bolt.diy-38BDF8?style=for-the-badge&logo=stackblitz&logoColor=black" alt="Built on Open-Source bolt.diy" /></a>
-  <a href="https://zoth.nullai.tech"><img src="https://img.shields.io/badge/MCP_Server-18_Agent_Tools-10B981?style=for-the-badge&logo=sparkles&logoColor=black" alt="18 MCP Tools" /></a>
-  <a href="https://zothos.nullai.tech"><img src="https://img.shields.io/badge/ZothOS_v3.3-Port_:5173-C084FC?style=for-the-badge&logo=linux&logoColor=black" alt="Port 5173" /></a>
+  <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X"><img src="https://img.shields.io/badge/%E2%98%95_Buy_Us_a_Coffee-Stripe-635bff?style=for-the-badge" alt="Buy Us a Coffee" /></a>
+  <a href="solana:GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK"><img src="https://img.shields.io/badge/%E2%97%8E_Tip-Solana-14f195?style=for-the-badge" alt="Solana Tip" /></a>
 </div>
 
 # ⚡ Zoth Bolt — Full-Stack AI & Motion Architect (`:5173`)
@@ -57,7 +57,7 @@ Every site can be seeded with deterministic 60fps choreography:
 3. **`gameboy-pixel-cinema`** — 16-Bit Pixel Art & Retro CRT Phosphor Arcade (`shape-rendering="crispEdges"` 16x16 sprites + WebAudio 8-bit chiptune synth)
 4. **`hermes-commerce-drop`** — Instant 15-Minute Neighborhood Commerce & Delivery Drop (`Sprig`, `Hatch`, `Hush`) with animated SVG ETA ring
 5. **`scroll-choreography-deck`** — 3D Isometric Multi-Layer SVG Exploded View with interactive layer-separation slider
-6. **`sovereign-saas-funnel`** — Sovereign Micro-SaaS Utility with real client-side AST/linter gauges + Dual Stripe & Solana DePay funnel
+6. **`sovereign-saas-funnel`** — Sovereign Micro-SaaS Utility with real client-side AST/linter gauges + Dual Stripe & Solana Tip funnel
 
 ### 3. 🛡️ 200,000+ Free Icons, 16-Bit Pixel Art SVGs & Bespoke Vector Crests
 Open the **Command Vault (`Assets & Motion` button in the header)** to search and inject:
@@ -97,14 +97,34 @@ Connect Claude Code, Cursor, Antigravity (`agy`), Cline, or Hermes directly to Z
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Quick Start & ZothOS CLI
 
 ```bash
-cd ~/NullAITech/bolt.diy
-pnpm install
-pnpm run dev
-# Opens on http://127.0.0.1:5173 (or inside Zoth Studio at http://127.0.0.1:3000/webgen)
+# Check daemon health & status
+bolt.diy --status
+bolt status
+
+# Query active providers & motion templates
+bolt providers
+bolt templates
+
+# Output deterministic JSON telemetry
+bolt.diy --json
+
+# Run local server on port 5173
+bolt.diy serve --port 5173
 ```
+
+---
+
+## ☕ 100% Free Open-Access Architecture & Support
+
+Zoth Bolt is **100% free, unlocked, and sovereign by default**. There are zero paywalls, zero cloud subscriptions, zero telemetry leaks, and zero locked templates.
+
+If you appreciate local-first AI engineering and high-craft motion design, support continued development:
+
+- ☕ **Buy Us a Coffee (Stripe)**: [https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X](https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X)
+- ◎ **Solana Tip Address**: `GG2eQbVh8ut1BK6j1A2tz7pSySdLpD38BgyEhGcxdXoK`
 
 ---
 

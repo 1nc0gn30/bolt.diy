@@ -64,7 +64,7 @@ export const ZothGuardrailBar: React.FC = () => {
       },
       {
         id: 'MONETIZATION',
-        label: 'Dual-Rail Stripe + Solana DePay & ?licensed=true',
+        label: 'Dual-Rail Stripe + Solana Tip & ?licensed=true',
         pass: /Stripe|Solana|DePay|licensed/i.test(combined),
       },
     ];
@@ -162,7 +162,7 @@ Sitemap: https://zoth.nullai.tech/sitemap.xml
                     name: 'What payment and licensing options are supported?',
                     acceptedAnswer: {
                       '@type': 'Answer',
-                      text: 'Supports Stripe and Solana DePay with instant ?licensed=true client-side activation.',
+                      text: 'Supports Stripe and Solana Tip with instant ?licensed=true client-side activation.',
                     },
                   },
                 ],
@@ -178,16 +178,16 @@ Sitemap: https://zoth.nullai.tech/sitemap.xml
 
         if (!/Neal Frazier Tech|1nc0gn30/i.test(html) || !/Stripe|Solana|DePay|licensed/i.test(html)) {
           const footerBlock = `
-  <!-- Sovereign Attribution & Dual-Rail Monetization Ready -->
+  <!-- Sovereign Attribution & Support Architecture -->
   <footer style="padding:12px 20px;text-align:center;font-family:monospace;font-size:12px;color:#94A3B8;background:#08080B;border-top:1px solid rgba(212,175,55,0.25);">
-    <span>⚡ Founding Pro ($19 Lifetime via Stripe &amp; Solana DePay • ?licensed=true)</span> •
-    <span>Engineered by <a href="https://github.com/1nc0gn30" style="color:#D4AF37;">Neal Frazier Tech (@1nc0gn30)</a> • <a href="https://nullai.tech" style="color:#38BDF8;">NullAI Platform</a> • <svg width="10" height="10" viewBox="0 0 10 10" style="display:inline-block"><circle cx="5" cy="5" r="4" fill="#D4AF37"/></svg></span>
+    <span>✦ 100% Free &amp; Open Access • <a href="https://buy.stripe.com/3cIfZg27PdKo2D64Ocfw40X" target="_blank" rel="noopener" style="color:#D4AF37;">☕ Buy Us a Coffee</a></span> •
+    <span>Engineered by <a href="https://github.com/1nc0gn30" style="color:#D4AF37;">Neal Frazier Tech (@1nc0gn30)</a> • <a href="https://nullai.tech" style="color:#38BDF8;">NullAI Platform</a></span>
   </footer>`;
           html = html.replace(/<\/body>/i, `${footerBlock}\n</body>`);
         }
 
         workbenchStore.setDocuments({
-          ...workbenchStore.documents.get(),
+          ...((workbenchStore as any).documents?.get?.() || {}),
           [htmlPath]: {
             value: html,
             isBinary: false,
@@ -232,7 +232,7 @@ Sitemap: https://zoth.nullai.tech/sitemap.xml
       }
 
       workbenchStore.setDocuments({
-        ...workbenchStore.documents.get(),
+        ...((workbenchStore as any).documents?.get?.() || {}),
         [htmlPath]: {
           value: html,
           isBinary: false,
